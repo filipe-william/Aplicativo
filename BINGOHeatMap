@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BingoApp - Heatmap Por Zonas</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+
+    <style>
+        body { margin: 0; padding: 0; font-family: sans-serif; }
+        #map { height: 100vh; width: 100%; }
+        
+        /* Container dos controles */
+        #controls {
+            position: absolute; bottom: 30px; left: 50%; 
+            transform: translateX(-50%); z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px; border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-align: center; width: 85%; max-width: 400px;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+        }
+
+        .btn-row { display: flex; gap: 10px; width: 100%; justify-content: center; }
+
+        button {
+            border: none; padding: 12px 20px; border-radius: 12px; 
+            font-size: 16px; font-weight: bold; cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+        }
+        button:active { transform: scale(0.98); }
+
+        #btnConnect { background: #007bff; color: white; flex-grow: 1; }
+        #btnCenter { background: #f0f0f0; color: #333; font-size: 20px; padding: 10px 15px; }
+
+        /* Painel Manual */
+        .manual-panel {
+            display: flex; gap: 8px; width: 100%; margin-top: 5px;
+            padding-top: 10px; border-top: 1px solid #eee;
+        }
+        #manualInput {
+            flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #ccc;
+            font-size: 16px; text-align: center;
+        }
+        #btnAddManual { background: #28a745; color: white; }
+
+        #status { color: #666; font-size: 0.9em; }
+        #valor-sensor { font-size: 20px; font-weight: bold; }
+        
+        /* Legenda simples */
+        .legenda { font-size: 12px; display: flex; gap: 10px; justify-content: center; width: 100%; margin-top: 5px;}
+        .dot { height: 10px; width: 10px; display: inline-block; border-radius: 50%; }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <div id="controls">
+        <div class="btn-row">
+            <button id="btnConnect">📡 Conectar ESP32</button>
+            <button id="btnCenter" title="Centralizar em mim">🎯</button>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; width: 100%; padding: 0 10px; box-sizing: border-box;">
+            <span id="status">Desconectado</span>
+            <span id="valor-sensor">--</span>
+        </div>
+        
+        <div class="legenda">
+            <span><span class="dot" style="background:blue;"></span> 0-200</span>
+            <span><span class="dot" style="background:#ffd700;"></span> 200-800</span>
+            <span><span class="dot" style="background:red;"></span> >800</span>
+        </div>
+
+        <div class="manual-panel">
+            <input type="number" id="manualInput" placeholder="Valor (ex: 150, 500, 900)" value="150">
+            <button id="btnAddManual">➕ Testar</button>
+        </div>
+    </div>
+
+    <script>
+        const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+        const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+
+        // 1. INICIA O MAPA
+        const map = L.map('map').setView([-23.5505, -46.6333], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // CONFIGURAÇÃO DAS 3 CAMADAS (LAYERS)
+        // Alteração: Reduzi radius de 35 para 15 e blur de 20 para 10.
+        
+        // Camada AZUL (0 - 200)
+        let ptsBlue = [];
+        let layerBlue = L.heatLayer(ptsBlue, {
+            radius: 15, blur: 10, maxZoom: 17,
+            gradient: {0.2: 'cyan', 0.65: '#007bff', 1.0: 'navy'} 
+        }).addTo(map);
+
+        // Camada AMARELA (200 - 800)
+        let ptsYellow = [];
+        let layerYellow = L.heatLayer(ptsYellow, {
+            radius: 15, blur: 10, maxZoom: 17,
+            gradient: {0.2: '#ffeb3b', 0.65: '#ffc107', 1.0: '#ff9800'} 
+        }).addTo(map);
+
+        // Camada VERMELHA (> 800)
+        let ptsRed = [];
+        let layerRed = L.heatLayer(ptsRed, {
+            radius: 15, blur: 10, maxZoom: 17,
+            gradient: {0.2: '#ff5252', 0.65: 'red', 1.0: '#8b0000'} 
+        }).addTo(map);
+
+
+        // Variáveis globais
+        let currentLat = 0;
+        let currentLng = 0;
+        let bluetoothDevice;
+        let userCircle = null;
+
+        // 2. FUNÇÃO LÓGICA DE CORES
+        function processarValor(valorRaw) {
+            document.getElementById('valor-sensor').innerText = valorRaw;
+            let valor = parseFloat(valorRaw);
+
+            if (currentLat === 0 || currentLng === 0) {
+                alert("Aguardando GPS...");
+                return;
+            }
+
+            // Define a intensidade visual do ponto
+            let intensidade = 0.6; 
+
+            // LÓGICA DE SEPARAÇÃO POR CAMADAS
+            if (valor >= 0 && valor < 200) {
+                ptsBlue.push([currentLat, currentLng, intensidade]);
+                layerBlue.setLatLngs(ptsBlue);
+                console.log("Adicionado na camada AZUL");
+            } 
+            else if (valor >= 200 && valor <= 800) {
+                ptsYellow.push([currentLat, currentLng, intensidade]);
+                layerYellow.setLatLngs(ptsYellow);
+                console.log("Adicionado na camada AMARELA");
+            } 
+            else if (valor > 800) {
+                ptsRed.push([currentLat, currentLng, intensidade]);
+                layerRed.setLatLngs(ptsRed);
+                console.log("Adicionado na camada VERMELHA");
+            }
+        }
+
+        // 3. BOTÃO DE TESTE MANUAL
+        document.getElementById('btnAddManual').addEventListener('click', () => {
+            const val = document.getElementById('manualInput').value;
+            if(val === "") return;
+            processarValor(val);
+        });
+
+        // 4. GPS
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(position => {
+                currentLat = position.coords.latitude;
+                currentLng = position.coords.longitude;
+                
+                if (userCircle) {
+                    userCircle.setLatLng([currentLat, currentLng]);
+                } else {
+                    userCircle = L.circle([currentLat, currentLng], {
+                        radius: 8, color: 'white', weight: 2,
+                        fillColor: '#2196F3', fillOpacity: 1
+                    }).addTo(map);
+                    map.setView([currentLat, currentLng], 17);
+                }
+            }, error => console.error(error), { enableHighAccuracy: true });
+        }
+
+        // 5. CENTER E BLUETOOTH
+        document.getElementById('btnCenter').addEventListener('click', () => {
+            if(currentLat !== 0) map.setView([currentLat, currentLng], 18);
+        });
+
+        document.getElementById('btnConnect').addEventListener('click', async () => {
+            try {
+                document.getElementById('status').innerText = "Procurando...";
+                bluetoothDevice = await navigator.bluetooth.requestDevice({
+                    filters: [{ name: 'ESP32_Heatmap' }],
+                    optionalServices: [SERVICE_UUID]
+                });
+                const server = await bluetoothDevice.gatt.connect();
+                const service = await server.getPrimaryService(SERVICE_UUID);
+                const characteristic = await service.getCharacteristic(CHAR_UUID);
+                document.getElementById('status').innerText = "🟢 Conectado!";
+                await characteristic.startNotifications();
+                characteristic.addEventListener('characteristicvaluechanged', (event) => {
+                    const value = new TextDecoder().decode(event.target.value);
+                    processarValor(value);
+                });
+                bluetoothDevice.addEventListener('gattserverdisconnected', () => {
+                     document.getElementById('status').innerText = "🔴 Desconectado";
+                });
+            } catch (error) {
+                console.error(error);
+                document.getElementById('status').innerText = "Erro";
+            }
+        });
+    </script>
+</body>
+</html>
