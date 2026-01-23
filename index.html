@@ -82,7 +82,7 @@
         </div>
     </div>
 
-     <script>
+    <script>
         const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
         const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
@@ -90,24 +90,29 @@
         const map = L.map('map').setView([-23.5505, -46.6333], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        // --- MUDANÇA PRINCIPAL: UMA ÚNICA CAMADA DE CALOR ---
-        // Todos os pontos vão para esta lista
-        let allPoints = [];
-
-        // Criamos uma única camada que sabe ir do Azul ao Vermelho
-        let mainLayer = L.heatLayer(allPoints, {
-            radius: 35, 
-            blur: 20, 
-            maxZoom: 17,
-            // O gradiente define a cor baseada na "força" acumulada naquele ponto
-            gradient: {
-                0.2: 'blue',   // Baixa intensidade
-                0.4: 'cyan',   // Transição
-                0.6: 'yellow', // Média intensidade
-                0.8: 'orange', // Alta
-                1.0: 'red'     // Altíssima
-            }
+        // CONFIGURAÇÃO DAS 3 CAMADAS (LAYERS)
+        
+        // Camada AZUL (0 - 200)
+        let ptsBlue = [];
+        let layerBlue = L.heatLayer(ptsBlue, {
+            radius: 35, blur: 20, maxZoom: 17,
+            gradient: {0.2: 'cyan', 0.65: '#007bff', 1.0: 'navy'} // Gradiente só de azuis
         }).addTo(map);
+
+        // Camada AMARELA (200 - 800)
+        let ptsYellow = [];
+        let layerYellow = L.heatLayer(ptsYellow, {
+            radius: 35, blur: 20, maxZoom: 17,
+            gradient: {0.2: '#ffeb3b', 0.65: '#ffc107', 1.0: '#ff9800'} // Amarelo para Laranja
+        }).addTo(map);
+
+        // Camada VERMELHA (> 800)
+        let ptsRed = [];
+        let layerRed = L.heatLayer(ptsRed, {
+            radius: 35, blur: 20, maxZoom: 17,
+            gradient: {0.2: '#ff5252', 0.65: 'red', 1.0: '#8b0000'} // Vermelho claro para escuro
+        }).addTo(map);
+
 
         // Variáveis globais
         let currentLat = 0;
@@ -115,36 +120,36 @@
         let bluetoothDevice;
         let userCircle = null;
 
-        // 2. NOVA LÓGICA DE CORES (INTEGRAÇÃO)
+        // 2. FUNÇÃO LÓGICA DE CORES
         function processarValor(valorRaw) {
             document.getElementById('valor-sensor').innerText = valorRaw;
             let valor = parseFloat(valorRaw);
 
             if (currentLat === 0 || currentLng === 0) {
-                console.log("Aguardando GPS para plotar: " + valor);
+                alert("Aguardando GPS...");
                 return;
             }
 
-            // --- LÓGICA DE NORMALIZAÇÃO ---
-            // O Heatmap funciona melhor com intensidades entre 0.0 e 1.0
-            // Vamos assumir que seu sensor vai de 0 a 1000 (ajuste o 1000 se o máximo for maior)
-            let maxSensorValue = 1000; 
-            
-            // Calcula a intensidade proporcional (ex: valor 500 vira 0.5)
-            // O Math.min garante que não passe de 1.0 se vier um valor maluco
-            let intensidade = Math.min(valor / maxSensorValue, 1.0);
-            
-            // Se o valor for muito baixo (ruído), forçamos um mínimo visual para aparecer azul
-            if(intensidade < 0.2 && intensidade > 0) intensidade = 0.2;
+            // Define a intensidade visual do ponto (quão forte ele "pinta")
+            // Usamos 0.6 para precisar de uns 2 pontos pra ficar cor sólida, dando efeito gradual
+            let intensidade = 0.6; 
 
-            // Adiciona o ponto na lista única
-            // O Leaflet.heat vai somar essa intensidade com o que já estiver lá
-            allPoints.push([currentLat, currentLng, intensidade]);
-            
-            // Atualiza a camada
-            mainLayer.setLatLngs(allPoints);
-            
-            console.log(`Ponto adicionado: Lat ${currentLat}, Lng ${currentLng}, Int ${intensidade}`);
+            // LÓGICA DE SEPARAÇÃO POR CAMADAS
+            if (valor >= 0 && valor < 200) {
+                ptsBlue.push([currentLat, currentLng, intensidade]);
+                layerBlue.setLatLngs(ptsBlue);
+                console.log("Adicionado na camada AZUL");
+            } 
+            else if (valor >= 200 && valor <= 800) {
+                ptsYellow.push([currentLat, currentLng, intensidade]);
+                layerYellow.setLatLngs(ptsYellow);
+                console.log("Adicionado na camada AMARELA");
+            } 
+            else if (valor > 800) {
+                ptsRed.push([currentLat, currentLng, intensidade]);
+                layerRed.setLatLngs(ptsRed);
+                console.log("Adicionado na camada VERMELHA");
+            }
         }
 
         // 3. BOTÃO DE TESTE MANUAL
@@ -202,6 +207,5 @@
             }
         });
     </script>
-
 </body>
 </html>
