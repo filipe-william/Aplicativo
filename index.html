@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BingoApp - Heatmap Teste</title>
+    <title>BingoApp - Heatmap Por Zonas</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -24,10 +24,7 @@
             display: flex; flex-direction: column; align-items: center; gap: 10px;
         }
 
-        /* Área dos botões em linha */
-        .btn-row {
-            display: flex; gap: 10px; width: 100%; justify-content: center;
-        }
+        .btn-row { display: flex; gap: 10px; width: 100%; justify-content: center; }
 
         button {
             border: none; padding: 12px 20px; border-radius: 12px; 
@@ -36,7 +33,6 @@
         }
         button:active { transform: scale(0.98); }
 
-        /* Estilos Específicos */
         #btnConnect { background: #007bff; color: white; flex-grow: 1; }
         #btnCenter { background: #f0f0f0; color: #333; font-size: 20px; padding: 10px 15px; }
 
@@ -53,6 +49,10 @@
 
         #status { color: #666; font-size: 0.9em; }
         #valor-sensor { font-size: 20px; font-weight: bold; }
+        
+        /* Legenda simples */
+        .legenda { font-size: 12px; display: flex; gap: 10px; justify-content: center; width: 100%; margin-top: 5px;}
+        .dot { height: 10px; width: 10px; display: inline-block; border-radius: 50%; }
     </style>
 </head>
 <body>
@@ -69,9 +69,15 @@
             <span id="status">Desconectado</span>
             <span id="valor-sensor">--</span>
         </div>
+        
+        <div class="legenda">
+            <span><span class="dot" style="background:blue;"></span> 0-200</span>
+            <span><span class="dot" style="background:#ffd700;"></span> 200-800</span>
+            <span><span class="dot" style="background:red;"></span> >800</span>
+        </div>
 
         <div class="manual-panel">
-            <input type="number" id="manualInput" placeholder="0-100" value="50">
+            <input type="number" id="manualInput" placeholder="Valor (ex: 150, 500, 900)" value="150">
             <button id="btnAddManual">➕ Testar</button>
         </div>
     </div>
@@ -84,9 +90,29 @@
         const map = L.map('map').setView([-23.5505, -46.6333], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        // Heatmap config
-        let heatPoints = [];
-        let heatLayer = L.heatLayer(heatPoints, {radius: 35, blur: 20, maxZoom: 17}).addTo(map);
+        // CONFIGURAÇÃO DAS 3 CAMADAS (LAYERS)
+        
+        // Camada AZUL (0 - 200)
+        let ptsBlue = [];
+        let layerBlue = L.heatLayer(ptsBlue, {
+            radius: 35, blur: 20, maxZoom: 17,
+            gradient: {0.2: 'cyan', 0.65: '#007bff', 1.0: 'navy'} // Gradiente só de azuis
+        }).addTo(map);
+
+        // Camada AMARELA (200 - 800)
+        let ptsYellow = [];
+        let layerYellow = L.heatLayer(ptsYellow, {
+            radius: 35, blur: 20, maxZoom: 17,
+            gradient: {0.2: '#ffeb3b', 0.65: '#ffc107', 1.0: '#ff9800'} // Amarelo para Laranja
+        }).addTo(map);
+
+        // Camada VERMELHA (> 800)
+        let ptsRed = [];
+        let layerRed = L.heatLayer(ptsRed, {
+            radius: 35, blur: 20, maxZoom: 17,
+            gradient: {0.2: '#ff5252', 0.65: 'red', 1.0: '#8b0000'} // Vermelho claro para escuro
+        }).addTo(map);
+
 
         // Variáveis globais
         let currentLat = 0;
@@ -94,36 +120,46 @@
         let bluetoothDevice;
         let userCircle = null;
 
-        // 2. FUNÇÃO CENTRALIZADA PARA ATUALIZAR O MAPA
-        // (Usada tanto pelo Bluetooth quanto pelo botão manual)
+        // 2. FUNÇÃO LÓGICA DE CORES
         function processarValor(valorRaw) {
-            // Atualiza o texto na tela
             document.getElementById('valor-sensor').innerText = valorRaw;
+            let valor = parseFloat(valorRaw);
 
-            // Se não tiver GPS ainda, avisa
             if (currentLat === 0 || currentLng === 0) {
-                alert("Aguardando sinal de GPS para plotar o ponto...");
+                alert("Aguardando GPS...");
                 return;
             }
 
-            // Normaliza o valor (assumindo que o sensor manda 0 a 100 ou similar)
-            // Se o valor for muito alto, o heatmap fica muito forte
-            let intensidade = parseFloat(valorRaw) / 100; // Ajuste este divisor conforme sua necessidade
+            // Define a intensidade visual do ponto (quão forte ele "pinta")
+            // Usamos 0.6 para precisar de uns 2 pontos pra ficar cor sólida, dando efeito gradual
+            let intensidade = 0.6; 
 
-            // Adiciona ao array de pontos e atualiza o layer
-            heatPoints.push([currentLat, currentLng, intensidade]);
-            heatLayer.setLatLngs(heatPoints);
-            console.log(`Ponto adicionado: Lat ${currentLat}, Lng ${currentLng}, Val ${intensidade}`);
+            // LÓGICA DE SEPARAÇÃO POR CAMADAS
+            if (valor >= 0 && valor < 200) {
+                ptsBlue.push([currentLat, currentLng, intensidade]);
+                layerBlue.setLatLngs(ptsBlue);
+                console.log("Adicionado na camada AZUL");
+            } 
+            else if (valor >= 200 && valor <= 800) {
+                ptsYellow.push([currentLat, currentLng, intensidade]);
+                layerYellow.setLatLngs(ptsYellow);
+                console.log("Adicionado na camada AMARELA");
+            } 
+            else if (valor > 800) {
+                ptsRed.push([currentLat, currentLng, intensidade]);
+                layerRed.setLatLngs(ptsRed);
+                console.log("Adicionado na camada VERMELHA");
+            }
         }
 
-        // 3. EVENTO DO BOTÃO DE TESTE MANUAL
+        // 3. BOTÃO DE TESTE MANUAL
         document.getElementById('btnAddManual').addEventListener('click', () => {
-            const valorManual = document.getElementById('manualInput').value;
-            if(valorManual === "") return;
-            processarValor(valorManual);
+            const val = document.getElementById('manualInput').value;
+            if(val === "") return;
+            processarValor(val);
         });
 
-        // 4. PEGAR GPS DO CELULAR
+        // 4. GPS
         if (navigator.geolocation) {
             navigator.geolocation.watchPosition(position => {
                 currentLat = position.coords.latitude;
@@ -138,49 +174,36 @@
                     }).addTo(map);
                     map.setView([currentLat, currentLng], 17);
                 }
-            }, error => {
-                console.error("Erro GPS:", error);
-            }, { enableHighAccuracy: true });
+            }, error => console.error(error), { enableHighAccuracy: true });
         }
 
-        // 5. BOTÃO DE CENTRALIZAR
+        // 5. CENTER E BLUETOOTH
         document.getElementById('btnCenter').addEventListener('click', () => {
-            if(currentLat !== 0) {
-                map.setView([currentLat, currentLng], 18);
-            } else {
-                alert("Aguardando sinal de GPS...");
-            }
+            if(currentLat !== 0) map.setView([currentLat, currentLng], 18);
         });
 
-        // 6. CONEXÃO BLUETOOTH
         document.getElementById('btnConnect').addEventListener('click', async () => {
             try {
                 document.getElementById('status').innerText = "Procurando...";
-                
                 bluetoothDevice = await navigator.bluetooth.requestDevice({
                     filters: [{ name: 'ESP32_Heatmap' }],
                     optionalServices: [SERVICE_UUID]
                 });
-
                 const server = await bluetoothDevice.gatt.connect();
                 const service = await server.getPrimaryService(SERVICE_UUID);
                 const characteristic = await service.getCharacteristic(CHAR_UUID);
-
                 document.getElementById('status').innerText = "🟢 Conectado!";
-                
                 await characteristic.startNotifications();
                 characteristic.addEventListener('characteristicvaluechanged', (event) => {
                     const value = new TextDecoder().decode(event.target.value);
-                    processarValor(value); // Usa a mesma função do teste manual
+                    processarValor(value);
                 });
-
                 bluetoothDevice.addEventListener('gattserverdisconnected', () => {
                      document.getElementById('status').innerText = "🔴 Desconectado";
                 });
-
             } catch (error) {
                 console.error(error);
-                document.getElementById('status').innerText = "Erro/Cancelado";
+                document.getElementById('status').innerText = "Erro";
             }
         });
     </script>
