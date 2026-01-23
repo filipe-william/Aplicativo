@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BingoApp</title>
+    <title>BingoApp - Heatmap</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -13,20 +13,38 @@
         body { margin: 0; padding: 0; font-family: sans-serif; }
         #map { height: 100vh; width: 100%; }
         
-        /* Botão flutuante bonito */
+        /* Container dos controles */
         #controls {
             position: absolute; bottom: 30px; left: 50%; 
             transform: translateX(-50%); z-index: 1000;
-            background: white; padding: 15px; border-radius: 30px;
+            background: rgba(255, 255, 255, 0.9); /* Leve transparência */
+            padding: 15px; border-radius: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            text-align: center; width: 80%;
+            text-align: center; width: 85%; max-width: 400px;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
         }
+
+        /* Área dos botões em linha */
+        .btn-row {
+            display: flex; gap: 10px; width: 100%; justify-content: center;
+        }
+
         button {
-            background: #007bff; color: white; border: none;
-            padding: 12px 24px; border-radius: 20px; font-size: 16px;
-            font-weight: bold; cursor: pointer;
+            border: none; padding: 12px 20px; border-radius: 12px; 
+            font-size: 16px; font-weight: bold; cursor: pointer;
+            transition: background 0.2s;
         }
-        #status { display: block; margin-top: 10px; color: #666; font-size: 0.9em; }
+
+        /* Estilo do botão conectar */
+        #btnConnect { background: #007bff; color: white; flex-grow: 1; }
+        #btnConnect:active { background: #0056b3; }
+
+        /* Estilo do botão centralizar */
+        #btnCenter { background: #f0f0f0; color: #333; font-size: 20px; padding: 10px 15px; }
+        #btnCenter:active { background: #dcdcdc; }
+
+        #status { color: #666; font-size: 0.9em; }
+        #valor-sensor { font-size: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -34,22 +52,26 @@
     <div id="map"></div>
 
     <div id="controls">
-        <button id="btnConnect">📡 Conectar ESP32</button>
-        <span id="status">Desconectado</span>
-        <div id="valor-sensor" style="font-size: 20px; font-weight: bold; margin-top:5px;">--</div>
+        <div class="btn-row">
+            <button id="btnConnect">📡 Conectar ESP32</button>
+            <button id="btnCenter" title="Centralizar em mim">🎯</button>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; width: 100%; padding: 0 10px; box-sizing: border-box;">
+            <span id="status">Desconectado</span>
+            <span id="valor-sensor">--</span>
+        </div>
     </div>
 
     <script>
-        // CONFIGURAÇÃO: Os mesmos UUIDs do código C++
         const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
         const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
         // 1. INICIA O MAPA
-        const map = L.map('map').setView([-23.5505, -46.6333], 15); // Começa em SP (vai mudar com GPS)
+        const map = L.map('map').setView([-23.5505, -46.6333], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        // Camada de Calor (Heatmap)
-        // Formato dos pontos: [latitude, longitude, intensidade(0.0 a 1.0)]
+        // Heatmap
         let heatPoints = [];
         let heatLayer = L.heatLayer(heatPoints, {radius: 35, blur: 20, maxZoom: 17}).addTo(map);
 
@@ -57,30 +79,51 @@
         let currentLat = 0;
         let currentLng = 0;
         let bluetoothDevice;
+        let userCircle = null; // Variável para guardar a bolinha azul
 
-        // 2. PEGAR GPS DO CELULAR EM TEMPO REAL
+        // 2. PEGAR GPS DO CELULAR (CORRIGIDO)
         if (navigator.geolocation) {
             navigator.geolocation.watchPosition(position => {
                 currentLat = position.coords.latitude;
                 currentLng = position.coords.longitude;
                 
-                // Opcional: Centralizar o mapa onde você está
-                // map.setView([currentLat, currentLng]); 
-                
-                // Desenha um circulo azul onde você está agora
-                L.circle([currentLat, currentLng], {radius: 5}).addTo(map);
+                // SOLUÇÃO DO ACÚMULO DE CÍRCULOS:
+                if (userCircle) {
+                    // Se a bolinha já existe, só muda ela de lugar
+                    userCircle.setLatLng([currentLat, currentLng]);
+                } else {
+                    // Se não existe, cria ela
+                    userCircle = L.circle([currentLat, currentLng], {
+                        radius: 8, 
+                        color: 'white', 
+                        weight: 2,
+                        fillColor: '#2196F3', 
+                        fillOpacity: 1
+                    }).addTo(map);
+                    
+                    // Centraliza na primeira vez que pega o sinal
+                    map.setView([currentLat, currentLng], 17);
+                }
+
             }, error => {
                 console.error("Erro GPS:", error);
-                alert("Ative o GPS!");
             }, { enableHighAccuracy: true });
         }
 
-        // 3. CONEXÃO BLUETOOTH
+        // 3. BOTÃO DE CENTRALIZAR (NOVA FUNCIONALIDADE)
+        document.getElementById('btnCenter').addEventListener('click', () => {
+            if(currentLat !== 0 && currentLng !== 0) {
+                map.setView([currentLat, currentLng], 18); // Zoom 18 é bem próximo
+            } else {
+                alert("Aguardando sinal de GPS...");
+            }
+        });
+
+        // 4. CONEXÃO BLUETOOTH
         document.getElementById('btnConnect').addEventListener('click', async () => {
             try {
                 document.getElementById('status').innerText = "Procurando...";
                 
-                // Pede permissão para parear
                 bluetoothDevice = await navigator.bluetooth.requestDevice({
                     filters: [{ name: 'ESP32_Heatmap' }],
                     optionalServices: [SERVICE_UUID]
@@ -92,7 +135,6 @@
 
                 document.getElementById('status').innerText = "🟢 Conectado!";
                 
-                // Inicia leitura contínua (Notificações)
                 await characteristic.startNotifications();
                 characteristic.addEventListener('characteristicvaluechanged', handleData);
 
@@ -102,24 +144,21 @@
 
             } catch (error) {
                 console.error(error);
-                alert("Erro ao conectar: " + error);
-                document.getElementById('status').innerText = "Erro";
+                document.getElementById('status').innerText = "Erro/Cancelado";
             }
         });
 
-        // 4. QUANDO O ESP32 MANDA UM DADO
+        // 5. RECEBENDO DADOS
         function handleData(event) {
             const value = new TextDecoder().decode(event.target.value);
-            document.getElementById('valor-sensor').innerText = "Sinal: " + value;
+            document.getElementById('valor-sensor').innerText = value; // Mostra só o número
 
-            // Transforma o valor (0 a 100) em intensidade (0.0 a 1.0)
             let intensidade = parseFloat(value) / 100;
 
             if (currentLat !== 0 && currentLng !== 0) {
-                // ADICIONA O PONTO NO MAPA DE CALOR
+                // Adiciona ao mapa
                 heatPoints.push([currentLat, currentLng, intensidade]);
                 heatLayer.setLatLngs(heatPoints);
-                console.log(`Ponto adicionado: ${currentLat}, ${currentLng}, Int: ${intensidade}`);
             }
         }
     </script>
