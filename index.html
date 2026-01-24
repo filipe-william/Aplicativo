@@ -1,196 +1,192 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BINGO Maps Layout Full Screen</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html, body {
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-            font-family: 'Inter', sans-serif;
-        }
-
-        /* ===== VIDEO BACKGROUND ===== */
-        .video-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -10;
-            overflow: hidden;
-        }
-
-        .video-bg iframe {
-            position: absolute;
-            width: 120vw;
-            height: 120vh;
-            pointer-events: none;
-        }
-
-        /* Overlay pra melhorar leitura */
-
-        /* ===== APP ===== */
-        .app-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .header {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 20;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .logo-icon {
-            width: 24px;
-            height: 24px;
-            background: linear-gradient(135deg, #FF6B00 50%, #2A5CAA 50%);
-            border-radius: 50% 50% 0 50%;
-            transform: rotate(45deg);
-        }
-
-        .logo-text {
-            font-size: 3rem;
-            font-weight: 800;
-            color: #000;
-        }
-
-        .logo-text span {
-            font-weight: 400;
-        }
-
-        .white-background-shape {
-            position: absolute;
-            top: 29%;
-            right: -15%;
-            width: 65%;
-            height: 40%;
-            background-color: #FFFFFF;
-            border-radius: 110px;
-            z-index: 1;
-        }
-
-        .pin-image {
-            position: absolute;
-            top: 50%;
-            right: -20%;
-            transform: translateY(-55%);
-            width: 70%;
-            max-width: 1600px;
-            z-index: 2;
-            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.15));
-            pointer-events: none;
-        }
-
-        .content-area {
-            position: absolute;
-            bottom: 5%;
-            left: 9%;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-        }
-
-        .hero-title {
-            font-family: 'Oswald', sans-serif;
-            font-size: clamp(3rem, 10vw, 6rem);
-            line-height: 0.95;
-            text-transform: uppercase;
-            max-width: 70%;
-        }
-
-        .bottom-menu {
-            background-color: #FFFFFF;
-            padding: 12px 25px;
-            border-radius: 50px;
-            display: flex;
-            justify-content: space-between;
-            width: 80%;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        .menu-item-left,
-        .menu-item-right {
-            font-size: 2rem;
-            font-weight: 700;
-        }
-
-        @media (max-width: 768px) {
-            .white-background-shape {
-                width: 80%;
-                height: 75%;
-            }
-
-            .pin-image {
-                width: 110%;
-                right: -30%;
-            }
-
-            .hero-title {
-                max-width: 80%;
-            }
-
-            .bottom-menu {
-                width: 100%;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <!-- VIDEO BACKGROUND -->
-    <div class="video-bg">
-        <iframe 
-            src="https://www.youtube.com/embed/YzMlG4YC2Hk?autoplay=1&mute=1&loop=1&playlist=YzMlG4YC2Hk&controls=0&showinfo=0&modestbranding=1"
-            frameborder="0"
-            allow="autoplay; fullscreen">
-        </iframe>
-    </div>
-    <div class="video-overlay"></div>
-
-    <main class="app-container">
-
-        <header class="header">
-            <div class="logo-icon"></div>
-            <div class="logo-text">BINGO<span>maps</span></div>
-        </header>
-
-        <div class="white-background-shape"></div>
-        <img src="https://i.postimg.cc/QdP4ntCD/1000252093.png" class="pin-image">
-
-        <div class="content-area">
-            <h1 class="hero-title">O FUTURO DA<br>ESCAVAÇÃO</h1>
-
-            <div class="bottom-menu">
-                <span class="menu-item-left">O que é?</span>
-                <span class="menu-item-right">Usar o BINGO</span>
-            </div>
-        </div>
-
-    </main>
-
-</body>
-</html>
+<!DOCTYPE html>    
+<html lang="pt-br">    
+<head>    
+    <meta charset="UTF-8">    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">    
+    <title>BINGO Maps Layout Full Screen</title>    
+        
+    <link rel="preconnect" href="https://fonts.googleapis.com">    
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">    
+    
+    <style>    
+        /* Reset e Configuração de Tela Cheia */    
+        * {    
+            margin: 0;    
+            padding: 0;    
+            box-sizing: border-box;    
+        }    
+    
+        html, body {    
+            height: 100%;    
+            width: 100%;    
+            overflow: hidden; /* Impede rolagem */    
+            font-family: 'Inter', sans-serif;    
+            background-color: #EEF0F2; /* Cor de fundo cinza */    
+        }    
+    
+        /* Container Principal */    
+        .app-container {    
+            position: relative;    
+            width: 100%;    
+            height: 100%;    
+            display: flex;    
+            flex-direction: column;    
+        }    
+    
+        /* --- Header / Logo --- */    
+        .header {    
+            position: absolute;    
+            top: 20px;    
+            left: 20px;    
+            z-index: 20;    
+            display: flex;    
+            align-items: center;    
+            gap: 8px;    
+        }    
+    
+        /* Ícone do Logo (CSS puro) */    
+        .logo-icon {    
+            width: 24px;    
+            height: 24px;    
+            background: linear-gradient(135deg, #FF6B00 50%, #2A5CAA 50%);    
+            border-radius: 50% 50% 0 50%;    
+            transform: rotate(45deg);    
+        }    
+    
+        .logo-text {    
+            font-size: 3rem;    
+            font-weight: 800;    
+            color: #000;    
+            letter-spacing: -0.5px;    
+        }    
+        .logo-text span {    
+            font-weight: 400;    
+        }    
+    
+        /* --- Fundo Branco e Imagem --- */    
+        /* O fundo branco arredondado que ocupa a direita */    
+        .white-background-shape {    
+            position: absolute;    
+            top: 29%;    
+            right: -15%;    
+            width: 65%; /* Ocupa a metade direita */    
+            height: 40%; /* Não vai até o final da tela */    
+            background-color: #FFFFFF;    
+            border-radius: 110px;    
+            z-index: 1;    
+        }    
+    
+        /* A imagem do PIN */    
+        .pin-image {    
+            position: absolute;    
+            /* Posicionamento para centralizar verticalmente na área branca e cortar à direita */    
+            top: 50%;    
+            right: -20%; /* Puxa a imagem para a direita para ser cortada */    
+            transform: translateY(-55%); /* Ajuste vertical fino */    
+            width: 70%; /* Tamanho relativo à tela */    
+            max-width: 1600px;    
+            height: auto;    
+            z-index: 2; /* Fica sobre o fundo branco */    
+            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.15));    
+            pointer-events: none; /* Permite clicar através da imagem se necessário */    
+        }    
+    
+        /* --- Conteúdo de Texto (Título e Botões) --- */    
+        .content-area {    
+            position: absolute;    
+            bottom: 5%;    
+            left: 9%;    
+            width: calc(100% - 40px);    
+            z-index: 10;    
+            display: flex;    
+            flex-direction: column;    
+            gap: 30px;    
+        }    
+    
+        /* Título Grande */    
+        .hero-title {    
+            font-family: 'Oswald', sans-serif;    
+            /* Tamanho da fonte responsivo: mínimo 3rem, ideal 10% da largura, máximo 6rem */    
+            font-size: clamp(3rem, 10vw, 6rem);     
+            font-weight: 600;    
+            line-height: 0.95;    
+            color: #000;    
+            text-transform: uppercase;    
+            white-space: pre-wrap; /* Permite quebras de linha do HTML */    
+            max-width: 70%; /* Garante que o texto não sobreponha a imagem em telas largas */    
+        }    
+    
+        /* --- Menu Inferior (Barra Branca) --- */    
+        .bottom-menu {    
+            background-color: #FFFFFF;    
+            padding: 12px 25px;    
+            border-radius: 50px; /* Forma de pílula */    
+            display: flex;    
+            justify-content: space-between;    
+            align-items: center;    
+            width: 80%;    
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);    
+        }    
+    
+        .menu-item-left {    
+            font-weight: 600;    
+            color: #000;    
+            font-size: 2rem;    
+        }    
+            
+        .menu-item-right {    
+            font-weight: 700;    
+            color: #000;    
+            font-size: 2rem;    
+        }    
+    
+        /* --- Ajustes para Mobile --- */    
+        @media (max-width: 768px) {    
+            .white-background-shape {    
+                width: 80%; /* Aumenta a área branca no mobile */    
+                height: 75%;    
+                border-bottom-left-radius: 70px;    
+            }    
+    
+            .pin-image {    
+                width: 110%; /* Imagem maior no mobile */    
+                right: -30%; /* Mais cortada */    
+                transform: translateY(-50%);    
+            }    
+                
+            .hero-title {    
+                 max-width: 80%; /* Texto pode ocupar mais espaço no mobile */    
+            }    
+    
+            .bottom-menu {    
+                max-width: 100%; /* Menu ocupa toda a largura disponível no mobile */    
+            }    
+        }    
+    </style>    
+</head>    
+<body>    
+    
+    <main class="app-container">    
+            
+        <header class="header">    
+            <div class="logo-icon"></div>    
+            <div class="logo-text">BINGO<span>maps</span></div>    
+        </header>    
+    
+        <div class="white-background-shape"></div>    
+        <img src="https://i.postimg.cc/QdP4ntCD/1000252093.png" alt="Pin de localização 3D" class="pin-image">    
+    
+        <div class="content-area">    
+            <h1 class="hero-title">O FUTURO DA<br>ESCAVAÇÃO</h1>    
+                
+            <div class="bottom-menu">    
+                <span class="menu-item-left">O que é?</span>    
+                <span class="menu-item-right">Usar o BINGO</span>    
+            </div>    
+        </div>    
+    
+    </main>    
+    
+</body>    
+</html> 
