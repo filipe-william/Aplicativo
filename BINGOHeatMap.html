@@ -81,131 +81,188 @@
             <button id="btnAddManual">➕ Testar</button>
         </div>
     </div>
+<script>
+    const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+    const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
-    <script>
-        const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
-        const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+    // ================================
+    // 1. INICIA O MAPA
+    // ================================
+    const map = L.map('map').setView([-23.5505, -46.6333], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        // 1. INICIA O MAPA
-        const map = L.map('map').setView([-23.5505, -46.6333], 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    // ================================
+    // 2. CAMADAS HEATMAP
+    // ================================
+    let ptsBlue = [];
+    let layerBlue = L.heatLayer(ptsBlue, {
+        radius: 15, blur: 10, maxZoom: 17,
+        gradient: {0.2: 'cyan', 0.65: '#007bff', 1.0: 'navy'}
+    }).addTo(map);
 
-        // CONFIGURAÇÃO DAS 3 CAMADAS (LAYERS)
-        // Alteração: Reduzi radius de 35 para 15 e blur de 20 para 10.
-        
-        // Camada AZUL (0 - 200)
-        let ptsBlue = [];
-        let layerBlue = L.heatLayer(ptsBlue, {
-            radius: 15, blur: 10, maxZoom: 17,
-            gradient: {0.2: 'cyan', 0.65: '#007bff', 1.0: 'navy'} 
-        }).addTo(map);
+    let ptsYellow = [];
+    let layerYellow = L.heatLayer(ptsYellow, {
+        radius: 15, blur: 10, maxZoom: 17,
+        gradient: {0.2: '#ffeb3b', 0.65: '#ffc107', 1.0: '#ff9800'}
+    }).addTo(map);
 
-        // Camada AMARELA (200 - 800)
-        let ptsYellow = [];
-        let layerYellow = L.heatLayer(ptsYellow, {
-            radius: 15, blur: 10, maxZoom: 17,
-            gradient: {0.2: '#ffeb3b', 0.65: '#ffc107', 1.0: '#ff9800'} 
-        }).addTo(map);
+    let ptsRed = [];
+    let layerRed = L.heatLayer(ptsRed, {
+        radius: 15, blur: 10, maxZoom: 17,
+        gradient: {0.2: '#ff5252', 0.65: 'red', 1.0: '#8b0000'}
+    }).addTo(map);
 
-        // Camada VERMELHA (> 800)
-        let ptsRed = [];
-        let layerRed = L.heatLayer(ptsRed, {
-            radius: 15, blur: 10, maxZoom: 17,
-            gradient: {0.2: '#ff5252', 0.65: 'red', 1.0: '#8b0000'} 
-        }).addTo(map);
+    // ================================
+    // 3. VARIÁVEIS GLOBAIS
+    // ================================
+    let currentLat = 0;
+    let currentLng = 0;
+    let bluetoothDevice = null;
+    let characteristic = null;
+    let isConnecting = false;
+    let userCircle = null;
 
+    let lastPointTime = 0;
+    const POINT_INTERVAL = 400; // mínimo 400ms entre pontos
 
-        // Variáveis globais
-        let currentLat = 0;
-        let currentLng = 0;
-        let bluetoothDevice;
-        let userCircle = null;
+    function atualizarStatus(msg) {
+        document.getElementById('status').innerText = msg;
+    }
 
-        // 2. FUNÇÃO LÓGICA DE CORES
-        function processarValor(valorRaw) {
-            document.getElementById('valor-sensor').innerText = valorRaw;
-            let valor = parseFloat(valorRaw);
+    // ================================
+    // 4. PROCESSAMENTO DE VALOR
+    // ================================
+    function processarValor(valorRaw) {
 
-            if (currentLat === 0 || currentLng === 0) {
-                alert("Aguardando GPS...");
-                return;
-            }
+        if (!valorRaw) return;
 
-            // Define a intensidade visual do ponto
-            let intensidade = 0.6; 
+        let valor = parseFloat(valorRaw);
 
-            // LÓGICA DE SEPARAÇÃO POR CAMADAS
-            if (valor >= 0 && valor < 200) {
-                ptsBlue.push([currentLat, currentLng, intensidade]);
-                layerBlue.setLatLngs(ptsBlue);
-                console.log("Adicionado na camada AZUL");
-            } 
-            else if (valor >= 200 && valor <= 800) {
-                ptsYellow.push([currentLat, currentLng, intensidade]);
-                layerYellow.setLatLngs(ptsYellow);
-                console.log("Adicionado na camada AMARELA");
-            } 
-            else if (valor > 800) {
-                ptsRed.push([currentLat, currentLng, intensidade]);
-                layerRed.setLatLngs(ptsRed);
-                console.log("Adicionado na camada VERMELHA");
-            }
+        if (isNaN(valor)) {
+            console.warn("Valor inválido:", valorRaw);
+            return;
         }
 
-        // 3. BOTÃO DE TESTE MANUAL
-        document.getElementById('btnAddManual').addEventListener('click', () => {
-            const val = document.getElementById('manualInput').value;
-            if(val === "") return;
-            processarValor(val);
-        });
+        document.getElementById('valor-sensor').innerText = valor;
 
-        // 4. GPS
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(position => {
-                currentLat = position.coords.latitude;
-                currentLng = position.coords.longitude;
-                
-                if (userCircle) {
-                    userCircle.setLatLng([currentLat, currentLng]);
-                } else {
-                    userCircle = L.circle([currentLat, currentLng], {
-                        radius: 8, color: 'white', weight: 2,
-                        fillColor: '#2196F3', fillOpacity: 1
-                    }).addTo(map);
-                    map.setView([currentLat, currentLng], 17);
-                }
-            }, error => console.error(error), { enableHighAccuracy: true });
+        if (currentLat === 0 || currentLng === 0) {
+            console.log("GPS ainda não fixado.");
+            return;
         }
 
-        // 5. CENTER E BLUETOOTH
-        document.getElementById('btnCenter').addEventListener('click', () => {
-            if(currentLat !== 0) map.setView([currentLat, currentLng], 18);
-        });
+        const now = Date.now();
+        if (now - lastPointTime < POINT_INTERVAL) return;
+        lastPointTime = now;
 
-        document.getElementById('btnConnect').addEventListener('click', async () => {
-            try {
-                document.getElementById('status').innerText = "Procurando...";
-                bluetoothDevice = await navigator.bluetooth.requestDevice({
-                    filters: [{ name: 'ESP32_Heatmap' }],
-                    optionalServices: [SERVICE_UUID]
-                });
-                const server = await bluetoothDevice.gatt.connect();
-                const service = await server.getPrimaryService(SERVICE_UUID);
-                const characteristic = await service.getCharacteristic(CHAR_UUID);
-                document.getElementById('status').innerText = "🟢 Conectado!";
-                await characteristic.startNotifications();
-                characteristic.addEventListener('characteristicvaluechanged', (event) => {
-                    const value = new TextDecoder().decode(event.target.value);
-                    processarValor(value);
-                });
-                bluetoothDevice.addEventListener('gattserverdisconnected', () => {
-                     document.getElementById('status').innerText = "🔴 Desconectado";
-                });
-            } catch (error) {
-                console.error(error);
-                document.getElementById('status').innerText = "Erro";
+        let intensidade = 0.6;
+
+        if (valor >= 0 && valor < 200) {
+            ptsBlue.push([currentLat, currentLng, intensidade]);
+            layerBlue.setLatLngs(ptsBlue);
+        }
+        else if (valor >= 200 && valor <= 800) {
+            ptsYellow.push([currentLat, currentLng, intensidade]);
+            layerYellow.setLatLngs(ptsYellow);
+        }
+        else if (valor > 800) {
+            ptsRed.push([currentLat, currentLng, intensidade]);
+            layerRed.setLatLngs(ptsRed);
+        }
+    }
+
+    // ================================
+    // 5. BOTÃO TESTE MANUAL
+    // ================================
+    document.getElementById('btnAddManual').addEventListener('click', () => {
+        const val = document.getElementById('manualInput').value;
+        if (val === "") return;
+        processarValor(val);
+    });
+
+    // ================================
+    // 6. GPS
+    // ================================
+    if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(position => {
+            currentLat = position.coords.latitude;
+            currentLng = position.coords.longitude;
+
+            if (userCircle) {
+                userCircle.setLatLng([currentLat, currentLng]);
+            } else {
+                userCircle = L.circle([currentLat, currentLng], {
+                    radius: 8,
+                    color: 'white',
+                    weight: 2,
+                    fillColor: '#2196F3',
+                    fillOpacity: 1
+                }).addTo(map);
+
+                map.setView([currentLat, currentLng], 17);
             }
-        });
-    </script>
+        }, error => console.error(error), { enableHighAccuracy: true });
+    }
+
+    // ================================
+    // 7. CENTRALIZAR
+    // ================================
+    document.getElementById('btnCenter').addEventListener('click', () => {
+        if (currentLat !== 0) map.setView([currentLat, currentLng], 18);
+    });
+
+    // ================================
+    // 8. BLUETOOTH ROBUSTO
+    // ================================
+    async function connectBLE() {
+
+        if (isConnecting) return;
+        isConnecting = true;
+
+        try {
+            atualizarStatus("Procurando...");
+
+            bluetoothDevice = await navigator.bluetooth.requestDevice({
+                filters: [{ name: 'ESP32_Heatmap' }],
+                optionalServices: [SERVICE_UUID]
+            });
+
+            bluetoothDevice.addEventListener('gattserverdisconnected', handleDisconnect);
+
+            const server = await bluetoothDevice.gatt.connect();
+            const service = await server.getPrimaryService(SERVICE_UUID);
+            characteristic = await service.getCharacteristic(CHAR_UUID);
+
+            await characteristic.startNotifications();
+            characteristic.addEventListener('characteristicvaluechanged', handleData);
+
+            atualizarStatus("🟢 Conectado");
+
+        } catch (error) {
+            console.error(error);
+            atualizarStatus("Erro na conexão");
+        } finally {
+            isConnecting = false;
+        }
+    }
+
+    function handleData(event) {
+        const value = new TextDecoder().decode(event.target.value);
+        processarValor(value.trim());
+    }
+
+    function handleDisconnect() {
+        atualizarStatus("🔴 Desconectado");
+        console.log("Tentando reconectar...");
+
+        setTimeout(() => {
+            if (bluetoothDevice) {
+                connectBLE();
+            }
+        }, 2000);
+    }
+
+    document.getElementById('btnConnect').addEventListener('click', connectBLE);
+
+</script>
 </body>
 </html>
