@@ -13,7 +13,6 @@
         body { margin: 0; padding: 0; font-family: sans-serif; }
         #map { height: 100vh; width: 100%; }
         
-        /* Container dos controles */
         #controls {
             position: absolute; bottom: 30px; left: 50%; 
             transform: translateX(-50%); z-index: 1000;
@@ -35,8 +34,8 @@
 
         #btnConnect { background: #007bff; color: white; flex-grow: 1; }
         #btnCenter { background: #f0f0f0; color: #333; font-size: 20px; padding: 10px 15px; }
+        #btnShutdown { background: #dc3545; color: white; width: 100%; margin-top: 5px; font-size: 14px; }
 
-        /* Painel Manual */
         .manual-panel {
             display: flex; gap: 8px; width: 100%; margin-top: 5px;
             padding-top: 10px; border-top: 1px solid #eee;
@@ -50,7 +49,6 @@
         #status { color: #666; font-size: 0.9em; }
         #valor-sensor { font-size: 20px; font-weight: bold; }
         
-        /* Legenda simples */
         .legenda { font-size: 12px; display: flex; gap: 10px; justify-content: center; width: 100%; margin-top: 5px;}
         .dot { height: 10px; width: 10px; display: inline-block; border-radius: 50%; }
     </style>
@@ -77,212 +75,110 @@
         </div>
 
         <div class="manual-panel">
-            <input type="number" id="manualInput" placeholder="Valor (ex: 150, 500, 900)" value="150">
+            <input type="number" id="manualInput" placeholder="Valor" value="150">
             <button id="btnAddManual">➕ Testar</button>
         </div>
+
+        <button id="btnShutdown">⚠️ DESLIGAR BINGO</button>
     </div>
+
 <script>
     const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
     const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
-    // ================================
-    // 1. INICIA O MAPA
-    // ================================
     const map = L.map('map').setView([-23.5505, -46.6333], 15);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // ================================
-    // 2. CAMADAS HEATMAP
-    // ================================
-    let ptsBlue = [];
-    let layerBlue = L.heatLayer(ptsBlue, {
-        radius: 15, blur: 10, maxZoom: 17,
-        gradient: {0.2: 'cyan', 0.65: '#007bff', 1.0: 'navy'}
-    }).addTo(map);
+    let ptsBlue = [], ptsYellow = [], ptsRed = [];
+    let layerBlue = L.heatLayer(ptsBlue, { radius: 15, blur: 10, gradient: {0.2: 'cyan', 0.65: '#007bff', 1.0: 'navy'} }).addTo(map);
+    let layerYellow = L.heatLayer(ptsYellow, { radius: 15, blur: 10, gradient: {0.2: '#ffeb3b', 0.65: '#ffc107', 1.0: '#ff9800'} }).addTo(map);
+    let layerRed = L.heatLayer(ptsRed, { radius: 15, blur: 10, gradient: {0.2: '#ff5252', 0.65: 'red', 1.0: '#8b0000'} }).addTo(map);
 
-    let ptsYellow = [];
-    let layerYellow = L.heatLayer(ptsYellow, {
-        radius: 15, blur: 10, maxZoom: 17,
-        gradient: {0.2: '#ffeb3b', 0.65: '#ffc107', 1.0: '#ff9800'}
-    }).addTo(map);
-
-    let ptsRed = [];
-    let layerRed = L.heatLayer(ptsRed, {
-        radius: 15, blur: 10, maxZoom: 17,
-        gradient: {0.2: '#ff5252', 0.65: 'red', 1.0: '#8b0000'}
-    }).addTo(map);
-
-    // ================================
-    // 3. VARIÁVEIS GLOBAIS
-    // ================================
-    let currentLat = 0;
-    let currentLng = 0;
-    let bluetoothDevice = null;
-    let characteristic = null;
-    let isConnecting = false;
-    let userCircle = null;
-
+    let currentLat = 0, currentLng = 0, bluetoothDevice = null, characteristic = null, isConnecting = false, userCircle = null;
     let lastPointTime = 0;
-    const POINT_INTERVAL = 400; // mínimo 400ms entre pontos
+    const POINT_INTERVAL = 400; 
+    let pontosRegistrados = []; 
+    const RAIO_MINIMO_METROS = 5;
 
-    let pontosRegistrados = []; // Array para guardar os locais já mapeados
-    const RAIO_MINIMO_METROS = 5; // Distância mínima (em metros) para aceitar um novo ponto
+    function atualizarStatus(msg) { document.getElementById('status').innerText = msg; }
 
-    function atualizarStatus(msg) {
-        document.getElementById('status').innerText = msg;
-    }
-
-    // ================================
-    // 4. PROCESSAMENTO DE VALOR
-    // ================================
     function processarValor(valorRaw) {
-
         if (!valorRaw) return;
-
         let valor = parseFloat(valorRaw);
-
-        if (isNaN(valor)) {
-            console.warn("Valor inválido:", valorRaw);
-            return;
-        }
-
+        if (isNaN(valor)) return;
         document.getElementById('valor-sensor').innerText = valor;
-
-        if (currentLat === 0 || currentLng === 0) {
-            console.log("GPS ainda não fixado.");
-            return;
-        }
+        if (currentLat === 0 || currentLng === 0) return;
 
         const now = Date.now();
         if (now - lastPointTime < POINT_INTERVAL) return;
         lastPointTime = now;
 
-        // --- LÓGICA DE FILTRO POR DISTÂNCIA ---
         const novoPontoLatLng = L.latLng(currentLat, currentLng);
+        const localJaMapeado = pontosRegistrados.some(pontoSalvo => novoPontoLatLng.distanceTo(pontoSalvo) < RAIO_MINIMO_METROS);
 
-        // Verifica se já existe algum ponto num raio de X metros
-        const localJaMapeado = pontosRegistrados.some(pontoSalvo => {
-            return novoPontoLatLng.distanceTo(pontoSalvo) < RAIO_MINIMO_METROS;
-        });
-
-        if (localJaMapeado) {
-            console.log("Ignorado: Já existe uma leitura para este local (raio de " + RAIO_MINIMO_METROS + "m).");
-            return; // Sai da função e não adiciona nas camadas
-        }
-
-        // Se é um local novo, salva na lista de controle
+        if (localJaMapeado) return;
         pontosRegistrados.push(novoPontoLatLng);
-        // ------------------------------------------
 
         let intensidade = 0.6;
-
-        if (valor >= 0 && valor < 200) {
-            ptsBlue.push([currentLat, currentLng, intensidade]);
-            layerBlue.setLatLngs(ptsBlue);
-        }
-        else if (valor >= 200 && valor <= 800) {
-            ptsYellow.push([currentLat, currentLng, intensidade]);
-            layerYellow.setLatLngs(ptsYellow);
-        }
-        else if (valor > 800) {
-            ptsRed.push([currentLat, currentLng, intensidade]);
-            layerRed.setLatLngs(ptsRed);
-        }
+        if (valor < 200) { ptsBlue.push([currentLat, currentLng, intensidade]); layerBlue.setLatLngs(ptsBlue); }
+        else if (valor <= 800) { ptsYellow.push([currentLat, currentLng, intensidade]); layerYellow.setLatLngs(ptsYellow); }
+        else { ptsRed.push([currentLat, currentLng, intensidade]); layerRed.setLatLngs(ptsRed); }
     }
 
-    // ================================
-    // 5. BOTÃO TESTE MANUAL
-    // ================================
     document.getElementById('btnAddManual').addEventListener('click', () => {
-        const val = document.getElementById('manualInput').value;
-        if (val === "") return;
-        processarValor(val);
+        processarValor(document.getElementById('manualInput').value);
     });
 
-    // ================================
-    // 6. GPS
-    // ================================
     if (navigator.geolocation) {
         navigator.geolocation.watchPosition(position => {
             currentLat = position.coords.latitude;
             currentLng = position.coords.longitude;
-
-            if (userCircle) {
-                userCircle.setLatLng([currentLat, currentLng]);
-            } else {
-                userCircle = L.circle([currentLat, currentLng], {
-                    radius: 8,
-                    color: 'white',
-                    weight: 2,
-                    fillColor: '#2196F3',
-                    fillOpacity: 1
-                }).addTo(map);
-
+            if (userCircle) userCircle.setLatLng([currentLat, currentLng]);
+            else {
+                userCircle = L.circle([currentLat, currentLng], { radius: 8, color: 'white', weight: 2, fillColor: '#2196F3', fillOpacity: 1 }).addTo(map);
                 map.setView([currentLat, currentLng], 17);
             }
-        }, error => console.error(error), { enableHighAccuracy: true });
+        }, null, { enableHighAccuracy: true });
     }
 
-    // ================================
-    // 7. CENTRALIZAR
-    // ================================
-    document.getElementById('btnCenter').addEventListener('click', () => {
-        if (currentLat !== 0) map.setView([currentLat, currentLng], 18);
-    });
+    document.getElementById('btnCenter').addEventListener('click', () => { if (currentLat !== 0) map.setView([currentLat, currentLng], 18); });
 
-    // ================================
-    // 8. BLUETOOTH ROBUSTO
-    // ================================
     async function connectBLE() {
-
         if (isConnecting) return;
         isConnecting = true;
-
         try {
             atualizarStatus("Procurando...");
-
-            bluetoothDevice = await navigator.bluetooth.requestDevice({
-                filters: [{ name: 'ESP32_Heatmap' }],
-                optionalServices: [SERVICE_UUID]
-            });
-
+            bluetoothDevice = await navigator.bluetooth.requestDevice({ filters: [{ name: 'ESP32_Heatmap' }], optionalServices: [SERVICE_UUID] });
             bluetoothDevice.addEventListener('gattserverdisconnected', handleDisconnect);
-
             const server = await bluetoothDevice.gatt.connect();
             const service = await server.getPrimaryService(SERVICE_UUID);
             characteristic = await service.getCharacteristic(CHAR_UUID);
-
             await characteristic.startNotifications();
-            characteristic.addEventListener('characteristicvaluechanged', handleData);
-
+            characteristic.addEventListener('characteristicvaluechanged', (e) => {
+                const value = new TextDecoder().decode(e.target.value);
+                processarValor(value.trim());
+            });
             atualizarStatus("🟢 Conectado");
-
-        } catch (error) {
-            console.error(error);
-            atualizarStatus("Erro na conexão");
-        } finally {
-            isConnecting = false;
-        }
-    }
-
-    function handleData(event) {
-        const value = new TextDecoder().decode(event.target.value);
-        processarValor(value.trim());
+        } catch (error) { atualizarStatus("Erro na conexão"); }
+        finally { isConnecting = false; }
     }
 
     function handleDisconnect() {
         atualizarStatus("🔴 Desconectado");
-        console.log("Tentando reconectar...");
-
-        setTimeout(() => {
-            if (bluetoothDevice) {
-                connectBLE();
-            }
-        }, 2000);
+        setTimeout(() => { if (bluetoothDevice) connectBLE(); }, 2000);
     }
 
-    document.getElementById('btnConnect').addEventListener('click', connectBLE);
+    // FUNÇÃO PARA DESLIGAR O ESP32
+    document.getElementById('btnShutdown').addEventListener('click', async () => {
+        if (!characteristic) { alert("Conecte ao ESP32 primeiro!"); return; }
+        if (confirm("Deseja realmente desligar o Bingo? (Será necessário apertar Reset no aparelho para ligar de novo)")) {
+            const encoder = new TextEncoder();
+            await characteristic.writeValue(encoder.encode("SHUTDOWN"));
+            atualizarStatus("⚠️ Comando Desligar Enviado");
+        }
+    });
 
+    document.getElementById('btnConnect').addEventListener('click', connectBLE);
 </script>
 </body>
 </html>
