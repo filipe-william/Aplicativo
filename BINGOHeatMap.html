@@ -168,10 +168,9 @@
         setTimeout(() => { if (bluetoothDevice) connectBLE(); }, 2000);
     }
 
-    // FUNÇÃO PARA DESLIGAR O ESP32
     document.getElementById('btnShutdown').addEventListener('click', async () => {
         if (!characteristic) { alert("Conecte ao ESP32 primeiro!"); return; }
-        if (confirm("Deseja realmente desligar o Bingo? (Será necessário apertar Reset no aparelho para ligar de novo)")) {
+        if (confirm("Deseja desligar o Bingo? (Será necessário apertar Reset no aparelho para ligar de novo)")) {
             const encoder = new TextEncoder();
             await characteristic.writeValue(encoder.encode("SHUTDOWN"));
             atualizarStatus("⚠️ Comando Desligar Enviado");
