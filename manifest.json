@@ -1,0 +1,17 @@
+{
+  "name": "BingoApp Heatmap",
+  "short_name": "BingoApp",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#e0e0e0",
+  "theme_color": "#007bff",
+  "description": "Aplicativo de mapeamento Bluetooth",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
