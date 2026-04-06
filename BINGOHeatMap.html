@@ -11,11 +11,10 @@
 
     <style>
         :root {
-            /* Variável para controlar a opacidade dinamicamente via JS */
             --panel-alpha: 0.95;
         }
 
-        body { margin: 0; padding: 0; font-family: sans-serif; transition: background-color 0.3s; }
+        body { margin: 0; padding: 0; font-family: sans-serif; transition: background-color 0.3s; overflow: hidden; }
         #map { height: 100vh; width: 100%; }
         
         #controls {
@@ -60,9 +59,7 @@
         .legenda { font-size: 12px; display: flex; gap: 10px; justify-content: center; width: 100%; margin-top: 5px;}
         .dot { height: 10px; width: 10px; display: inline-block; border-radius: 50%; }
 
-        /* ====== NOVOS ESTILOS: CONFIGURAÇÕES E MODO ESCURO ====== */
-        
-        /* Botão de abrir configurações */
+        /* ====== CONFIGURAÇÕES ====== */
         #btnSettings {
             position: absolute; top: 15px; right: 15px; z-index: 1000;
             background: white; color: #333; border-radius: 50%; width: 45px; height: 45px;
@@ -70,7 +67,6 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
-        /* Modal de Configurações */
         #settingsModal {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             z-index: 2000; background: white; padding: 20px; border-radius: 15px;
@@ -92,11 +88,10 @@
         .checkbox-row { display: flex; align-items: center; gap: 10px; }
         .checkbox-row input { transform: scale(1.3); cursor: pointer; }
 
-        /* Classes para o Modo Escuro */
+        /* ====== MODO ESCURO ====== */
         body.dark-mode #controls, 
         body.dark-mode #settingsModal, 
         body.dark-mode #btnSettings {
-            /* Mantemos o uso da variável de opacidade, mas com RGB escuro */
             background: rgba(30, 30, 30, var(--panel-alpha)); 
             color: #eee;
         }
@@ -110,11 +105,8 @@
         body.dark-mode #manualInput { background: #444; color: white; border-color: #555; }
         body.dark-mode #btnCenter { background: #444; color: white; }
 
-        /* Truque mágico: inverte as cores das "tiles" (imagens) do Leaflet para criar um Dark Mode */
-        body.dark-mode .leaflet-layer,
-        body.dark-mode .leaflet-control-zoom-in,
-        body.dark-mode .leaflet-control-zoom-out,
-        body.dark-mode .leaflet-control-attribution {
+        /* Inverte apenas a camada do mapa base (tiles), não inverte as cores do Heatmap ou da Linha! */
+        body.dark-mode .leaflet-tile-pane {
             filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
         }
     </style>
@@ -123,10 +115,8 @@
 
     <div id="map"></div>
 
-    <!-- Botão de Configurações -->
     <button id="btnSettings" title="Configurações">⚙️</button>
 
-    <!-- Modal de Configurações -->
     <div id="settingsModal" class="hidden">
         <div class="modal-header">
             <h3>Configurações</h3>
@@ -141,13 +131,18 @@
         </div>
 
         <div class="setting-item">
+            <div class="checkbox-row">
+                <input type="checkbox" id="showPathToggle" checked>
+                <label for="showPathToggle" style="margin:0;">Mostrar Rastro (Caminho)</label>
+            </div>
+        </div>
+
+        <div class="setting-item">
             <label for="opacitySlider">Opacidade do Painel</label>
-            <!-- Range de 0.2 (quase invisível) a 1.0 (sólido) -->
             <input type="range" id="opacitySlider" min="0.2" max="1" step="0.05" value="0.95">
         </div>
     </div>
 
-    <!-- Controles Principais -->
     <div id="controls">
         <div class="btn-row">
             <button id="btnConnect">📡 Conectar ESP32</button>
@@ -174,16 +169,30 @@
     </div>
 
 <script>
+    // --- Configurações BLE ---
     const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
     const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
-    const map = L.map('map').setView([-23.5505, -46.6333], 15);
+    // --- Inicialização do Mapa ---
+    const map = L.map('map', { zoomControl: false }).setView([-23.5505, -46.6333], 15);
+    L.control.zoom({ position: 'topleft' }).addTo(map);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
+    // --- Camadas do Heatmap ---
     let ptsBlue = [], ptsYellow = [], ptsRed = [];
     let layerBlue = L.heatLayer(ptsBlue, { radius: 15, blur: 10, gradient: {0.2: 'cyan', 0.65: '#007bff', 1.0: 'navy'} }).addTo(map);
     let layerYellow = L.heatLayer(ptsYellow, { radius: 15, blur: 10, gradient: {0.2: '#ffeb3b', 0.65: '#ffc107', 1.0: '#ff9800'} }).addTo(map);
     let layerRed = L.heatLayer(ptsRed, { radius: 15, blur: 10, gradient: {0.2: '#ff5252', 0.65: 'red', 1.0: '#8b0000'} }).addTo(map);
+
+    // --- Variáveis de Rastreio (Caminho/Rastro) ---
+    let userPathCoords = []; 
+    // Criação da linha do caminho. Cor roxa com borda suave
+    let userPathLine = L.polyline([], { 
+        color: '#8e44ad', 
+        weight: 4, 
+        opacity: 0.8, 
+        lineJoin: 'round' 
+    }).addTo(map);
 
     let currentLat = 0, currentLng = 0, bluetoothDevice = null, characteristic = null, isConnecting = false, userCircle = null;
     let lastPointTime = 0;
@@ -196,24 +205,26 @@
     const settingsModal = document.getElementById('settingsModal');
     const btnCloseSettings = document.getElementById('btnCloseSettings');
     const darkModeToggle = document.getElementById('darkModeToggle');
+    const showPathToggle = document.getElementById('showPathToggle');
     const opacitySlider = document.getElementById('opacitySlider');
 
-    // Abrir/Fechar Modal
     btnSettings.addEventListener('click', () => settingsModal.classList.remove('hidden'));
     btnCloseSettings.addEventListener('click', () => settingsModal.classList.add('hidden'));
 
-    // Modo Escuro
     darkModeToggle.addEventListener('change', (e) => {
+        if (e.target.checked) document.body.classList.add('dark-mode');
+        else document.body.classList.remove('dark-mode');
+    });
+
+    showPathToggle.addEventListener('change', (e) => {
         if (e.target.checked) {
-            document.body.classList.add('dark-mode');
+            if (!map.hasLayer(userPathLine)) map.addLayer(userPathLine);
         } else {
-            document.body.classList.remove('dark-mode');
+            if (map.hasLayer(userPathLine)) map.removeLayer(userPathLine);
         }
     });
 
-    // Slider de Opacidade
     opacitySlider.addEventListener('input', (e) => {
-        // Altera a variável CSS no elemento root (:root)
         document.documentElement.style.setProperty('--panel-alpha', e.target.value);
     });
     // =====================================
@@ -247,15 +258,36 @@
         processarValor(document.getElementById('manualInput').value);
     });
 
+    // --- CAPTURA DE LOCALIZAÇÃO E DESENHO DO RASTRO ---
     if (navigator.geolocation) {
         navigator.geolocation.watchPosition(position => {
             currentLat = position.coords.latitude;
             currentLng = position.coords.longitude;
-            if (userCircle) userCircle.setLatLng([currentLat, currentLng]);
-            else {
-                userCircle = L.circle([currentLat, currentLng], { radius: 8, color: 'white', weight: 2, fillColor: '#2196F3', fillOpacity: 1 }).addTo(map);
-                map.setView([currentLat, currentLng], 17);
+            const newLatLng = L.latLng(currentLat, currentLng);
+
+            // Atualiza a bolinha azul (localização atual)
+            if (userCircle) {
+                userCircle.setLatLng(newLatLng);
+            } else {
+                userCircle = L.circle(newLatLng, { radius: 8, color: 'white', weight: 2, fillColor: '#2196F3', fillOpacity: 1 }).addTo(map);
+                map.setView(newLatLng, 17);
             }
+
+            // Atualiza o rastro (caminho percorrido)
+            if (userPathCoords.length === 0) {
+                // Primeiro ponto
+                userPathCoords.push(newLatLng);
+                userPathLine.addLatLng(newLatLng);
+            } else {
+                const lastLatLng = userPathCoords[userPathCoords.length - 1];
+                // Só adiciona um novo ponto na linha se você andou pelo menos 2 metros 
+                // Isso evita que o rastro fique tremendo/rabiscado se o GPS oscilar enquanto você está parado
+                if (newLatLng.distanceTo(lastLatLng) > 2) {
+                    userPathCoords.push(newLatLng);
+                    userPathLine.addLatLng(newLatLng);
+                }
+            }
+
         }, null, { enableHighAccuracy: true });
     }
 
@@ -299,4 +331,5 @@
 </script>
 </body>
 </html>
+
 
