@@ -1,174 +1,273 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BingoApp - Heatmap Por Zonas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BingoApp - Heatmap</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+    
+    <!-- Ícones Lucide para um visual limpo -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
         :root {
-            --panel-alpha: 0.95;
+            --panel-alpha: 0.75; /* Mais transparente para o efeito Glassmorphism */
+            --bg-light: rgba(255, 255, 255, var(--panel-alpha));
+            --bg-dark: rgba(28, 28, 30, var(--panel-alpha));
+            --text-light: #1c1c1e;
+            --text-dark: #f2f2f7;
+            --accent: #007aff;
+            --danger: #ff3b30;
+            --success: #34c759;
+            --border-radius: 24px;
         }
 
-        body { margin: 0; padding: 0; font-family: sans-serif; transition: background-color 0.3s; overflow: hidden; }
-        #map { height: 100vh; width: 100%; background: #e0e0e0; /* Cor de fundo caso desliguem o mapa base */ }
+        /* Reset e Fontes Nativas (iOS style) */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            margin: 0; padding: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            overflow: hidden; background: #e5e5ea; color: var(--text-light);
+            transition: color 0.4s ease;
+        }
+
+        #map { height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; z-index: 1; }
         
-        #controls {
-            position: absolute; bottom: 30px; left: 50%; 
-            transform: translateX(-50%); z-index: 1000;
-            background: rgba(255, 255, 255, var(--panel-alpha));
-            padding: 15px; border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            text-align: center; width: 85%; max-width: 400px;
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
+        /* Efeito Glassmorphism base */
+        .glass-panel {
+            background: var(--bg-light);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: background 0.4s ease, border-color 0.4s ease;
+        }
+
+        /* === HEADER (Status Superior) === */
+        #header-status {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; padding: 8px 20px; border-radius: 30px;
+            display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500;
+        }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ffcc00; transition: background 0.3s;}
+        .status-dot.connected { background: var(--success); }
+        .status-dot.disconnected { background: var(--danger); }
+
+        /* === BOTÕES FLUTUANTES SUPERIORES === */
+        .float-btn {
+            position: absolute; z-index: 1000;
+            width: 44px; height: 44px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            border: none; cursor: pointer; color: var(--text-light);
+        }
+        .float-btn:active { transform: scale(0.92); }
+        
+        #btnSettings { top: 20px; left: 20px; }
+        /* O controle nativo do Leaflet fica na direita, ajustamos depois via CSS do Leaflet */
+
+        /* === PAINEL INFERIOR (Controles Principais) === */
+        #bottom-panel {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; width: 92%; max-width: 400px;
+            border-radius: var(--border-radius); padding: 20px;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+
+        /* Display de Valor */
+        .value-display {
+            text-align: center; display: flex; flex-direction: column; align-items: center;
+        }
+        .value-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; }
+        #valor-sensor { font-size: 42px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; margin-top: 5px;}
+
+        /* Ações Principais */
+        .primary-actions { display: flex; gap: 12px; }
+        
+        .btn-action {
+            flex: 1; border: none; padding: 14px; border-radius: 16px;
+            font-size: 16px; font-weight: 600; cursor: pointer;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+            transition: all 0.2s; color: white;
+        }
+        .btn-action:active { transform: scale(0.96); }
+        
+        #btnConnect { background: var(--accent); }
+        #btnCenter { background: rgba(0,0,0,0.05); color: var(--text-light); flex: 0 0 54px; padding: 0; }
+        
+        /* Legenda Minimalista */
+        .legenda { 
+            display: flex; justify-content: space-between; font-size: 11px; font-weight: 500;
+            padding: 10px 15px; background: rgba(0,0,0,0.03); border-radius: 12px;
+        }
+        .legenda-item { display: flex; align-items: center; gap: 6px; }
+        .dot { height: 8px; width: 8px; border-radius: 50%; }
+
+        /* === PAINEL DE CONFIGURAÇÕES (BottomSheet) === */
+        #settingsSheet {
+            position: absolute; bottom: 0; left: 0; width: 100%; z-index: 2000;
+            border-radius: 30px 30px 0 0; padding: 25px 20px 40px;
+            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #settingsSheet.active { transform: translateY(0); }
+        
+        .sheet-handle {
+            width: 40px; height: 5px; background: rgba(0,0,0,0.2);
+            border-radius: 10px; margin: 0 auto 20px;
+        }
+
+        .setting-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 0; border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .setting-row:last-child { border-bottom: none; }
+        
+        .setting-info { display: flex; flex-direction: column; gap: 4px; }
+        .setting-title { font-size: 16px; font-weight: 500; }
+        .setting-desc { font-size: 12px; opacity: 0.6; }
+
+        /* Toggle Switch Nativo iOS Style */
+        .toggle-switch {
+            position: relative; width: 50px; height: 30px; appearance: none;
+            background: #e5e5ea; border-radius: 30px; outline: none; cursor: pointer;
             transition: background 0.3s;
         }
-
-        .btn-row { display: flex; gap: 10px; width: 100%; justify-content: center; }
-
-        button {
-            border: none; padding: 12px 20px; border-radius: 12px; 
-            font-size: 16px; font-weight: bold; cursor: pointer;
-            transition: transform 0.1s, background 0.2s, color 0.2s;
+        .toggle-switch::after {
+            content: ''; position: absolute; top: 2px; left: 2px;
+            width: 26px; height: 26px; background: white; border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        button:active { transform: scale(0.98); }
+        .toggle-switch:checked { background: var(--success); }
+        .toggle-switch:checked::after { transform: translateX(20px); }
 
-        #btnConnect { background: #007bff; color: white; flex-grow: 1; }
-        #btnCenter { background: #f0f0f0; color: #333; font-size: 20px; padding: 10px 15px; }
-        #btnShutdown { background: #dc3545; color: white; width: 100%; margin-top: 5px; font-size: 14px; }
-
-        .manual-panel {
-            display: flex; gap: 8px; width: 100%; margin-top: 5px;
-            padding-top: 10px; border-top: 1px solid #eee;
-            transition: border-color 0.3s;
+        /* Sliders iOS Style */
+        input[type="range"] {
+            -webkit-appearance: none; width: 100%; height: 6px; background: rgba(0,0,0,0.1);
+            border-radius: 5px; outline: none; margin-top: 10px;
         }
-        #manualInput {
-            flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #ccc;
-            font-size: 16px; text-align: center;
-            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%;
+            background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer;
         }
-        #btnAddManual { background: #28a745; color: white; }
 
-        #status { color: #666; font-size: 0.9em; transition: color 0.3s; }
-        #valor-sensor { font-size: 20px; font-weight: bold; }
+        #btnShutdown {
+            width: 100%; background: rgba(255, 59, 48, 0.1); color: var(--danger);
+            border: none; padding: 15px; border-radius: 16px; font-weight: 600; font-size: 16px;
+            margin-top: 20px; cursor: pointer; display: flex; justify-content: center; gap: 8px;
+        }
+
+        /* Overlay do Menu (fundo escurecido) */
+        #backdrop {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); z-index: 1500; opacity: 0; pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        #backdrop.active { opacity: 1; pointer-events: auto; }
+
+        /* === MODO ESCURO === */
+        body.dark-mode { background: #000; color: var(--text-dark); }
+        body.dark-mode .glass-panel { background: var(--bg-dark); border-color: rgba(255,255,255,0.05); }
+        body.dark-mode .float-btn { color: var(--text-dark); }
+        body.dark-mode #btnCenter { background: rgba(255,255,255,0.1); color: var(--text-dark); }
+        body.dark-mode .sheet-handle { background: rgba(255,255,255,0.2); }
+        body.dark-mode .setting-row { border-bottom-color: rgba(255,255,255,0.05); }
+        body.dark-mode .legenda { background: rgba(255,255,255,0.05); }
+        body.dark-mode input[type="range"] { background: rgba(255,255,255,0.1); }
         
-        .legenda { font-size: 12px; display: flex; gap: 10px; justify-content: center; width: 100%; margin-top: 5px;}
-        .dot { height: 10px; width: 10px; display: inline-block; border-radius: 50%; }
-
-        /* ====== CONFIGURAÇÕES ====== */
-        /* Ajuste do botão de config para não sobrepor o controle de camadas nativo do Leaflet (que fica na direita) */
-        #btnSettings {
-            position: absolute; top: 15px; left: 15px; z-index: 1000;
-            background: white; color: #333; border-radius: 50%; width: 45px; height: 45px;
-            font-size: 22px; padding: 0; display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-
-        #settingsModal {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            z-index: 2000; background: white; padding: 20px; border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4); width: 80%; max-width: 300px;
-            display: flex; flex-direction: column; gap: 15px;
-            transition: all 0.3s ease;
-        }
-        #settingsModal.hidden {
-            opacity: 0; pointer-events: none; transform: translate(-50%, -40%);
-        }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;}
-        .modal-header h3 { margin: 0; font-size: 18px; color: #333;}
-        #btnCloseSettings { background: transparent; color: #666; padding: 5px; font-size: 18px; box-shadow: none; }
-        
-        .setting-item { display: flex; flex-direction: column; gap: 8px; text-align: left;}
-        .setting-item label { font-weight: bold; font-size: 14px; color: #444;}
-        .setting-item input[type="range"] { width: 100%; }
-        
-        .checkbox-row { display: flex; align-items: center; gap: 10px; }
-        .checkbox-row input { transform: scale(1.3); cursor: pointer; }
-
-        /* ====== MODO ESCURO ====== */
-        body.dark-mode #controls, 
-        body.dark-mode #settingsModal, 
-        body.dark-mode #btnSettings {
-            background: rgba(30, 30, 30, var(--panel-alpha)); 
-            color: #eee;
-        }
-        body.dark-mode #map { background: #222; }
-        body.dark-mode #btnSettings { color: #eee; }
-        body.dark-mode .modal-header h3, 
-        body.dark-mode .setting-item label { color: #eee; }
-        body.dark-mode #btnCloseSettings { color: #aaa; }
-        body.dark-mode #status { color: #aaa; }
-        body.dark-mode .manual-panel { border-top-color: #444; }
-        body.dark-mode #manualInput { background: #444; color: white; border-color: #555; }
-        body.dark-mode #btnCenter { background: #444; color: white; }
-
-        /* Deixa o controle nativo do Leaflet escuro também */
-        body.dark-mode .leaflet-control-layers {
-            background: rgba(30, 30, 30, 0.9);
-            color: #eee;
-            border-color: #444;
-        }
-
-        body.dark-mode .leaflet-tile-pane {
-            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
-        }
+        /* Ajuste Leaflet Controls para Dark Mode e Estética iOS */
+        .leaflet-control-layers { border-radius: 14px !important; border: none !important; box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important; font-family: inherit !important;}
+        body.dark-mode .leaflet-control-layers { background: rgba(28, 28, 30, 0.9) !important; color: #eee !important; }
+        body.dark-mode .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
     </style>
 </head>
 <body>
 
     <div id="map"></div>
 
-    <button id="btnSettings" title="Configurações">⚙️</button>
+    <!-- Backdrop para o menu -->
+    <div id="backdrop"></div>
 
-    <div id="settingsModal" class="hidden">
-        <div class="modal-header">
-            <h3>Configurações</h3>
-            <button id="btnCloseSettings">✖</button>
-        </div>
-        
-        <div class="setting-item">
-            <div class="checkbox-row">
-                <input type="checkbox" id="darkModeToggle">
-                <label for="darkModeToggle" style="margin:0;">Modo Escuro</label>
-            </div>
-        </div>
-
-        <div class="setting-item">
-            <label for="opacitySlider">Opacidade do Painel</label>
-            <input type="range" id="opacitySlider" min="0.2" max="1" step="0.05" value="0.95">
-        </div>
+    <!-- Header Status -->
+    <div id="header-status" class="glass-panel">
+        <div id="status-indicator" class="status-dot"></div>
+        <span id="status-text">Procurando ESP32...</span>
     </div>
 
-    <div id="controls">
-        <div class="btn-row">
-            <button id="btnConnect">📡 Conectar ESP32</button>
-            <button id="btnCenter" title="Centralizar em mim">🎯</button>
+    <!-- Botão Configurações -->
+    <button id="btnSettings" class="glass-panel float-btn">
+        <i data-lucide="settings"></i>
+    </button>
+
+    <!-- Bottom Sheet Configurações -->
+    <div id="settingsSheet" class="glass-panel">
+        <div class="sheet-handle" id="closeSheet"></div>
+        
+        <div class="setting-row">
+            <div class="setting-info">
+                <span class="setting-title">Modo Escuro</span>
+                <span class="setting-desc">Inverte as cores do mapa e interface</span>
+            </div>
+            <input type="checkbox" class="toggle-switch" id="darkModeToggle">
+        </div>
+
+        <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 5px;">
+            <div class="setting-info" style="width: 100%;">
+                <span class="setting-title">Transparência da Interface</span>
+            </div>
+            <input type="range" id="opacitySlider" min="0.3" max="1" step="0.05" value="0.75">
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-info">
+                <span class="setting-title">Painel de Testes</span>
+                <span class="setting-desc">Simular dados sem hardware</span>
+            </div>
+            <input type="checkbox" class="toggle-switch" id="testPanelToggle">
         </div>
         
-        <div style="display: flex; justify-content: space-between; width: 100%; padding: 0 10px; box-sizing: border-box;">
-            <span id="status">Desconectado</span>
+        <!-- Painel Manual Oculto por padrão -->
+        <div id="manualTestArea" style="display: none; margin-top: 15px; gap: 10px;">
+            <input type="number" id="manualInput" placeholder="Valor (ex: 300)" style="flex:1; padding:12px; border-radius:12px; border:none; background:rgba(0,0,0,0.05); font-size:16px;">
+            <button id="btnAddManual" style="padding:12px 20px; border-radius:12px; border:none; background:var(--success); color:white; font-weight:bold;">Testar</button>
+        </div>
+
+        <button id="btnShutdown">
+            <i data-lucide="power"></i> Desligar Bingo
+        </button>
+    </div>
+
+    <!-- Painel Inferior Principal -->
+    <div id="bottom-panel" class="glass-panel">
+        
+        <div class="value-display">
+            <span class="value-label">Intensidade do Sinal</span>
             <span id="valor-sensor">--</span>
+        </div>
+
+        <div class="primary-actions">
+            <button id="btnConnect" class="btn-action">
+                <i data-lucide="bluetooth"></i> Conectar
+            </button>
+            <button id="btnCenter" class="btn-action" title="Centralizar Mapa">
+                <i data-lucide="navigation"></i>
+            </button>
         </div>
         
         <div class="legenda">
-            <span><span class="dot" style="background:blue;"></span> 0-200</span>
-            <span><span class="dot" style="background:#ffd700;"></span> 200-800</span>
-            <span><span class="dot" style="background:red;"></span> >800</span>
+            <div class="legenda-item"><span class="dot" style="background:#007aff;"></span> 0-200</div>
+            <div class="legenda-item"><span class="dot" style="background:#ffcc00;"></span> 200-800</div>
+            <div class="legenda-item"><span class="dot" style="background:#ff3b30;"></span> >800</div>
         </div>
-
-        <div class="manual-panel">
-            <input type="number" id="manualInput" placeholder="Valor" value="150">
-            <button id="btnAddManual">➕ Testar</button>
-        </div>
-
-        <button id="btnShutdown">⚠️ DESLIGAR BINGO</button>
     </div>
 
 <script>
+    // Inicializa ícones Lucide
+    lucide.createIcons();
+
     // --- Configurações BLE ---
     const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
     const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
@@ -176,85 +275,88 @@
     // --- Inicialização do Mapa ---
     const map = L.map('map', { zoomControl: false }).setView([-23.5505, -46.6333], 15);
     
-    // --- MAPAS BASE (Backgrounds) ---
     const mapaPadrao = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-    // Uma camada "vazia" caso o usuário queira esconder as ruas
     const semMapa = L.layerGroup(); 
-    
-    // Adiciona o mapa padrão por definição
     mapaPadrao.addTo(map);
 
-    // --- CAMADAS DE DADOS (Overlays) ---
-    
-    // 1. Heatmap (Agrupamos as 3 cores em um único grupo para facilitar ligar/desligar)
+    // --- CAMADAS DE DADOS ---
     let ptsBlue = [], ptsYellow = [], ptsRed = [];
-    let layerBlue = L.heatLayer(ptsBlue, { radius: 15, blur: 10, gradient: {0.2: 'cyan', 0.65: '#007bff', 1.0: 'navy'} });
-    let layerYellow = L.heatLayer(ptsYellow, { radius: 15, blur: 10, gradient: {0.2: '#ffeb3b', 0.65: '#ffc107', 1.0: '#ff9800'} });
-    let layerRed = L.heatLayer(ptsRed, { radius: 15, blur: 10, gradient: {0.2: '#ff5252', 0.65: 'red', 1.0: '#8b0000'} });
+    let layerBlue = L.heatLayer(ptsBlue, { radius: 15, blur: 10, gradient: {0.2: 'cyan', 0.65: '#007aff', 1.0: 'navy'} });
+    let layerYellow = L.heatLayer(ptsYellow, { radius: 15, blur: 10, gradient: {0.2: '#ffcc00', 0.65: '#ff9500', 1.0: '#ff3b30'} }); // Cores iOS
+    let layerRed = L.heatLayer(ptsRed, { radius: 15, blur: 10, gradient: {0.2: '#ff3b30', 0.65: '#c51162', 1.0: '#8b0000'} });
     
     const heatmapGroup = L.layerGroup([layerBlue, layerYellow, layerRed]).addTo(map);
 
-    // 2. Caminho/Rastro
     let userPathCoords = []; 
-    let userPathLine = L.polyline([], { color: '#8e44ad', weight: 4, opacity: 0.8, lineJoin: 'round' });
+    let userPathLine = L.polyline([], { color: '#af52de', weight: 5, opacity: 0.8, lineJoin: 'round' }); // Roxo iOS
     const rastroGroup = L.layerGroup([userPathLine]).addTo(map);
 
-    // 3. Localização do Usuário (Bolinha Azul)
     let userCircle = null;
     const locationGroup = L.layerGroup().addTo(map);
 
-
-    // --- CONTROLE DE CAMADAS (O Menu Superior Direito) ---
-    const baseMaps = {
-        "Mapa Padrão": mapaPadrao,
-        "Sem Mapa (Fundo Limpo)": semMapa
-    };
-
-    const overlayMaps = {
-        "Dados (Heatmap)": heatmapGroup,
-        "Caminho (Rastro)": rastroGroup,
-        "Minha Localização": locationGroup
-    };
-
-    // Adiciona o controle ao mapa
+    // --- CONTROLE DE CAMADAS ---
+    const baseMaps = { "Mapa (Ruas)": mapaPadrao, "Fundo Limpo": semMapa };
+    const overlayMaps = { "Dados (Calor)": heatmapGroup, "Rastro": rastroGroup, "Localização": locationGroup };
     L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map);
-    // Reposicionamos o zoom para baixo da engrenagem para não bagunçar
-    L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
-
+    // Variáveis de Estado
     let currentLat = 0, currentLng = 0, bluetoothDevice = null, characteristic = null, isConnecting = false;
     let lastPointTime = 0;
     const POINT_INTERVAL = 400; 
     let pontosRegistrados = []; 
     const RAIO_MINIMO_METROS = 5;
 
-    // ====== LÓGICA DE CONFIGURAÇÕES (Engrenagem) ======
+    // ====== UI LOGIC (Menus e Botões) ======
     const btnSettings = document.getElementById('btnSettings');
-    const settingsModal = document.getElementById('settingsModal');
-    const btnCloseSettings = document.getElementById('btnCloseSettings');
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const opacitySlider = document.getElementById('opacitySlider');
+    const settingsSheet = document.getElementById('settingsSheet');
+    const backdrop = document.getElementById('backdrop');
+    const closeSheet = document.getElementById('closeSheet');
+    
+    function toggleSheet() {
+        settingsSheet.classList.toggle('active');
+        backdrop.classList.toggle('active');
+    }
+    
+    btnSettings.addEventListener('click', toggleSheet);
+    backdrop.addEventListener('click', toggleSheet);
+    closeSheet.addEventListener('click', toggleSheet); // Puxar barra fecha
 
-    btnSettings.addEventListener('click', () => settingsModal.classList.remove('hidden'));
-    btnCloseSettings.addEventListener('click', () => settingsModal.classList.add('hidden'));
-
-    darkModeToggle.addEventListener('change', (e) => {
-        if (e.target.checked) document.body.classList.add('dark-mode');
-        else document.body.classList.remove('dark-mode');
+    // Configurações
+    document.getElementById('darkModeToggle').addEventListener('change', (e) => {
+        document.body.classList.toggle('dark-mode', e.target.checked);
     });
 
-    opacitySlider.addEventListener('input', (e) => {
+    document.getElementById('opacitySlider').addEventListener('input', (e) => {
         document.documentElement.style.setProperty('--panel-alpha', e.target.value);
     });
+
+    document.getElementById('testPanelToggle').addEventListener('change', (e) => {
+        document.getElementById('manualTestArea').style.display = e.target.checked ? 'flex' : 'none';
+    });
+
     // =====================================
 
-    function atualizarStatus(msg) { document.getElementById('status').innerText = msg; }
+    const statusText = document.getElementById('status-text');
+    const statusIndicator = document.getElementById('status-indicator');
+
+    function atualizarStatus(msg, state = 'normal') { 
+        statusText.innerText = msg; 
+        statusIndicator.className = 'status-dot'; // reseta classes
+        if(state === 'connected') statusIndicator.classList.add('connected');
+        if(state === 'disconnected') statusIndicator.classList.add('disconnected');
+    }
 
     function processarValor(valorRaw) {
         if (!valorRaw) return;
         let valor = parseFloat(valorRaw);
         if (isNaN(valor)) return;
-        document.getElementById('valor-sensor').innerText = valor;
+        
+        // Animação de entrada do valor
+        const valorDisplay = document.getElementById('valor-sensor');
+        valorDisplay.innerText = valor;
+        valorDisplay.style.transform = 'scale(1.1)';
+        setTimeout(() => valorDisplay.style.transform = 'scale(1)', 100);
+
         if (currentLat === 0 || currentLng === 0) return;
 
         const now = Date.now();
@@ -284,16 +386,18 @@
             currentLng = position.coords.longitude;
             const newLatLng = L.latLng(currentLat, currentLng);
 
-            // Atualiza a bolinha azul (localização atual) DENTRO do locationGroup
             if (userCircle) {
                 userCircle.setLatLng(newLatLng);
             } else {
-                userCircle = L.circle(newLatLng, { radius: 8, color: 'white', weight: 2, fillColor: '#2196F3', fillOpacity: 1 });
-                locationGroup.addLayer(userCircle); // Adiciona ao grupo controlável
+                // Bolinha azul estilo nativo Apple Maps
+                userCircle = L.circleMarker(newLatLng, { 
+                    radius: 8, color: 'white', weight: 3, 
+                    fillColor: '#007aff', fillOpacity: 1 
+                });
+                locationGroup.addLayer(userCircle);
                 map.setView(newLatLng, 17);
             }
 
-            // Atualiza o rastro
             if (userPathCoords.length === 0) {
                 userPathCoords.push(newLatLng);
                 userPathLine.addLatLng(newLatLng);
@@ -313,8 +417,12 @@
     async function connectBLE() {
         if (isConnecting) return;
         isConnecting = true;
+        const btn = document.getElementById('btnConnect');
+        btn.innerHTML = '<i data-lucide="loader-2" class="lucide-spin"></i> Conectando...';
+        lucide.createIcons();
+
         try {
-            atualizarStatus("Procurando...");
+            atualizarStatus("Buscando Dispositivo...", "normal");
             bluetoothDevice = await navigator.bluetooth.requestDevice({ filters: [{ name: 'ESP32_Heatmap' }], optionalServices: [SERVICE_UUID] });
             bluetoothDevice.addEventListener('gattserverdisconnected', handleDisconnect);
             const server = await bluetoothDevice.gatt.connect();
@@ -325,28 +433,48 @@
                 const value = new TextDecoder().decode(e.target.value);
                 processarValor(value.trim());
             });
-            atualizarStatus("🟢 Conectado");
-        } catch (error) { atualizarStatus("Erro na conexão"); }
+            atualizarStatus("Conectado", "connected");
+            btn.innerHTML = '<i data-lucide="bluetooth-connected"></i> Conectado';
+            btn.style.background = 'var(--success)';
+            lucide.createIcons();
+        } catch (error) { 
+            atualizarStatus("Falha na Conexão", "disconnected"); 
+            btn.innerHTML = '<i data-lucide="bluetooth"></i> Tentar Novamente';
+            btn.style.background = 'var(--accent)';
+            lucide.createIcons();
+        }
         finally { isConnecting = false; }
     }
 
     function handleDisconnect() {
-        atualizarStatus("🔴 Desconectado");
+        atualizarStatus("Desconectado", "disconnected");
+        const btn = document.getElementById('btnConnect');
+        btn.innerHTML = '<i data-lucide="bluetooth"></i> Reconectar';
+        btn.style.background = 'var(--danger)';
+        lucide.createIcons();
         setTimeout(() => { if (bluetoothDevice) connectBLE(); }, 2000);
     }
 
     document.getElementById('btnShutdown').addEventListener('click', async () => {
         if (!characteristic) { alert("Conecte ao ESP32 primeiro!"); return; }
-        if (confirm("Deseja desligar o Bingo? (Será necessário apertar Reset no aparelho para ligar de novo)")) {
+        if (confirm("Deseja desligar o Bingo? (Será necessário apertar Reset no aparelho)")) {
             const encoder = new TextEncoder();
             await characteristic.writeValue(encoder.encode("SHUTDOWN"));
-            atualizarStatus("⚠️ Comando Desligar Enviado");
+            atualizarStatus("Desligando...", "disconnected");
+            toggleSheet(); // Fecha o menu ao enviar comando
         }
     });
 
     document.getElementById('btnConnect').addEventListener('click', connectBLE);
 </script>
+
+<style>
+    /* Keyframe para o ícone de loading girar */
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .lucide-spin { animation: spin 2s linear infinite; }
+</style>
 </body>
 </html>
 
 
+```
