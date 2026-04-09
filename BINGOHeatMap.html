@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -9,13 +8,13 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
-    
-    <!-- Ícones Lucide para um visual limpo -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Biblioteca para exportar HTML para Imagem -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
 
     <style>
         :root {
-            --panel-alpha: 0.75; /* Mais transparente para o efeito Glassmorphism */
+            --panel-alpha: 0.75;
             --bg-light: rgba(255, 255, 255, var(--panel-alpha));
             --bg-dark: rgba(28, 28, 30, var(--panel-alpha));
             --text-light: #1c1c1e;
@@ -26,7 +25,6 @@
             --border-radius: 24px;
         }
 
-        /* Reset e Fontes Nativas (iOS style) */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { 
             margin: 0; padding: 0; 
@@ -37,7 +35,6 @@
 
         #map { height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; z-index: 1; }
         
-        /* Efeito Glassmorphism base */
         .glass-panel {
             background: var(--bg-light);
             backdrop-filter: blur(15px);
@@ -57,19 +54,23 @@
         .status-dot.connected { background: var(--success); }
         .status-dot.disconnected { background: var(--danger); }
 
-        /* === BOTÕES FLUTUANTES SUPERIORES === */
+        /* === BOTÕES FLUTUANTES ESQUERDA === */
+        .float-btn-group {
+            position: absolute; top: 20px; left: 20px; z-index: 1000;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        
         .float-btn {
-            position: absolute; z-index: 1000;
             width: 44px; height: 44px; border-radius: 50%;
             display: flex; justify-content: center; align-items: center;
             border: none; cursor: pointer; color: var(--text-light);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            background: var(--bg-light); border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.1s;
         }
         .float-btn:active { transform: scale(0.92); }
-        
-        #btnSettings { top: 20px; left: 20px; }
-        /* O controle nativo do Leaflet fica na direita, ajustamos depois via CSS do Leaflet */
 
-        /* === PAINEL INFERIOR (Controles Principais) === */
+        /* === PAINEL INFERIOR === */
         #bottom-panel {
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
             z-index: 1000; width: 92%; max-width: 400px;
@@ -77,16 +78,11 @@
             display: flex; flex-direction: column; gap: 15px;
         }
 
-        /* Display de Valor */
-        .value-display {
-            text-align: center; display: flex; flex-direction: column; align-items: center;
-        }
+        .value-display { text-align: center; display: flex; flex-direction: column; align-items: center; }
         .value-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; }
         #valor-sensor { font-size: 42px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; margin-top: 5px;}
 
-        /* Ações Principais */
         .primary-actions { display: flex; gap: 12px; }
-        
         .btn-action {
             flex: 1; border: none; padding: 14px; border-radius: 16px;
             font-size: 16px; font-weight: 600; cursor: pointer;
@@ -98,7 +94,6 @@
         #btnConnect { background: var(--accent); }
         #btnCenter { background: rgba(0,0,0,0.05); color: var(--text-light); flex: 0 0 54px; padding: 0; }
         
-        /* Legenda Minimalista */
         .legenda { 
             display: flex; justify-content: space-between; font-size: 11px; font-weight: 500;
             padding: 10px 15px; background: rgba(0,0,0,0.03); border-radius: 12px;
@@ -106,7 +101,7 @@
         .legenda-item { display: flex; align-items: center; gap: 6px; }
         .dot { height: 8px; width: 8px; border-radius: 50%; }
 
-        /* === PAINEL DE CONFIGURAÇÕES (BottomSheet) === */
+        /* === BOTTOM SHEET (Configurações) === */
         #settingsSheet {
             position: absolute; bottom: 0; left: 0; width: 100%; z-index: 2000;
             border-radius: 30px 30px 0 0; padding: 25px 20px 40px;
@@ -115,95 +110,129 @@
         }
         #settingsSheet.active { transform: translateY(0); }
         
-        .sheet-handle {
-            width: 40px; height: 5px; background: rgba(0,0,0,0.2);
-            border-radius: 10px; margin: 0 auto 20px;
-        }
-
-        .setting-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 0; border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-        .setting-row:last-child { border-bottom: none; }
+        .sheet-handle { width: 40px; height: 5px; background: rgba(0,0,0,0.2); border-radius: 10px; margin: 0 auto 20px; }
         
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .setting-row:last-child { border-bottom: none; }
         .setting-info { display: flex; flex-direction: column; gap: 4px; }
         .setting-title { font-size: 16px; font-weight: 500; }
         .setting-desc { font-size: 12px; opacity: 0.6; }
 
-        /* Toggle Switch Nativo iOS Style */
         .toggle-switch {
             position: relative; width: 50px; height: 30px; appearance: none;
-            background: #e5e5ea; border-radius: 30px; outline: none; cursor: pointer;
-            transition: background 0.3s;
+            background: #e5e5ea; border-radius: 30px; outline: none; cursor: pointer; transition: background 0.3s;
         }
         .toggle-switch::after {
-            content: ''; position: absolute; top: 2px; left: 2px;
-            width: 26px; height: 26px; background: white; border-radius: 50%;
+            content: ''; position: absolute; top: 2px; left: 2px; width: 26px; height: 26px; background: white; border-radius: 50%;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .toggle-switch:checked { background: var(--success); }
         .toggle-switch:checked::after { transform: translateX(20px); }
 
-        /* Sliders iOS Style */
-        input[type="range"] {
-            -webkit-appearance: none; width: 100%; height: 6px; background: rgba(0,0,0,0.1);
-            border-radius: 5px; outline: none; margin-top: 10px;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%;
-            background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer;
-        }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; background: rgba(0,0,0,0.1); border-radius: 5px; outline: none; margin-top: 10px; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer; }
 
         #btnShutdown {
-            width: 100%; background: rgba(255, 59, 48, 0.1); color: var(--danger);
-            border: none; padding: 15px; border-radius: 16px; font-weight: 600; font-size: 16px;
-            margin-top: 20px; cursor: pointer; display: flex; justify-content: center; gap: 8px;
+            width: 100%; background: rgba(255, 59, 48, 0.1); color: var(--danger); border: none; padding: 15px; border-radius: 16px; font-weight: 600; font-size: 16px; margin-top: 20px; cursor: pointer; display: flex; justify-content: center; gap: 8px;
         }
 
-        /* Overlay do Menu (fundo escurecido) */
-        #backdrop {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4); z-index: 1500; opacity: 0; pointer-events: none;
-            transition: opacity 0.4s ease;
-        }
+        #backdrop { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1500; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
         #backdrop.active { opacity: 1; pointer-events: auto; }
+
+        /* === ESTILIZAÇÃO DO CONTROLE DE CAMADAS DO LEAFLET === */
+        /* Movemos o controle de zoom para não conflitar com a estética */
+        .leaflet-control-zoom { display: none; } 
+        
+        .leaflet-control-layers {
+            border-radius: 20px !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+            background: var(--bg-light) !important;
+            backdrop-filter: blur(15px) !important;
+            -webkit-backdrop-filter: blur(15px) !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+            color: var(--text-light) !important;
+            padding: 8px !important;
+            margin-top: 20px !important;
+            margin-right: 20px !important;
+            transition: all 0.4s ease;
+        }
+
+        .leaflet-control-layers-expanded {
+            padding: 15px !important;
+            border-radius: 24px !important;
+        }
+
+        .leaflet-control-layers-separator {
+            border-top: 1px solid rgba(0,0,0,0.1) !important;
+            margin: 10px 0 !important;
+        }
+
+        .leaflet-control-layers label {
+            display: flex !important; align-items: center !important; gap: 8px !important;
+            margin-bottom: 8px !important; font-size: 14px !important; font-weight: 500 !important;
+            cursor: pointer;
+        }
+        
+        .leaflet-control-layers input[type="checkbox"], 
+        .leaflet-control-layers input[type="radio"] {
+            margin: 0 !important;
+            accent-color: var(--accent); /* Cor iOS para os botões do mapa */
+            width: 16px; height: 16px; cursor: pointer;
+        }
 
         /* === MODO ESCURO === */
         body.dark-mode { background: #000; color: var(--text-dark); }
         body.dark-mode .glass-panel { background: var(--bg-dark); border-color: rgba(255,255,255,0.05); }
-        body.dark-mode .float-btn { color: var(--text-dark); }
+        body.dark-mode .float-btn { color: var(--text-dark); background: var(--bg-dark); }
         body.dark-mode #btnCenter { background: rgba(255,255,255,0.1); color: var(--text-dark); }
         body.dark-mode .sheet-handle { background: rgba(255,255,255,0.2); }
         body.dark-mode .setting-row { border-bottom-color: rgba(255,255,255,0.05); }
         body.dark-mode .legenda { background: rgba(255,255,255,0.05); }
         body.dark-mode input[type="range"] { background: rgba(255,255,255,0.1); }
         
-        /* Ajuste Leaflet Controls para Dark Mode e Estética iOS */
-        .leaflet-control-layers { border-radius: 14px !important; border: none !important; box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important; font-family: inherit !important;}
-        body.dark-mode .leaflet-control-layers { background: rgba(28, 28, 30, 0.9) !important; color: #eee !important; }
+        body.dark-mode .leaflet-control-layers { 
+            background: rgba(28, 28, 30, 0.85) !important; 
+            color: #eee !important; 
+            border-color: rgba(255,255,255,0.1) !important;
+        }
+        body.dark-mode .leaflet-control-layers-separator { border-top-color: rgba(255,255,255,0.1) !important; }
         body.dark-mode .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+
+        /* Overlay de Loading durante a Exportação */
+        #export-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.7); z-index: 9999; display: none;
+            flex-direction: column; justify-content: center; align-items: center; color: white;
+        }
     </style>
 </head>
 <body>
 
     <div id="map"></div>
-
-    <!-- Backdrop para o menu -->
     <div id="backdrop"></div>
 
-    <!-- Header Status -->
-    <div id="header-status" class="glass-panel">
+    <div id="export-overlay">
+        <i data-lucide="camera" style="width: 48px; height: 48px; margin-bottom: 10px;" class="lucide-pulse"></i>
+        <h3 style="margin: 0; font-family: sans-serif;">Capturando Mapa...</h3>
+    </div>
+
+    <!-- Interface (Classes 'ui-element' para esconder na hora de bater a foto) -->
+    <div id="header-status" class="glass-panel ui-element">
         <div id="status-indicator" class="status-dot"></div>
         <span id="status-text">Procurando ESP32...</span>
     </div>
 
-    <!-- Botão Configurações -->
-    <button id="btnSettings" class="glass-panel float-btn">
-        <i data-lucide="settings"></i>
-    </button>
+    <div class="float-btn-group ui-element">
+        <button id="btnSettings" class="float-btn" title="Configurações">
+            <i data-lucide="settings"></i>
+        </button>
+        <button id="btnExport" class="float-btn" title="Exportar PNG">
+            <i data-lucide="camera"></i>
+        </button>
+    </div>
 
-    <!-- Bottom Sheet Configurações -->
-    <div id="settingsSheet" class="glass-panel">
+    <div id="settingsSheet" class="glass-panel ui-element">
         <div class="sheet-handle" id="closeSheet"></div>
         
         <div class="setting-row">
@@ -229,7 +258,6 @@
             <input type="checkbox" class="toggle-switch" id="testPanelToggle">
         </div>
         
-        <!-- Painel Manual Oculto por padrão -->
         <div id="manualTestArea" style="display: none; margin-top: 15px; gap: 10px;">
             <input type="number" id="manualInput" placeholder="Valor (ex: 300)" style="flex:1; padding:12px; border-radius:12px; border:none; background:rgba(0,0,0,0.05); font-size:16px;">
             <button id="btnAddManual" style="padding:12px 20px; border-radius:12px; border:none; background:var(--success); color:white; font-weight:bold;">Testar</button>
@@ -240,23 +268,15 @@
         </button>
     </div>
 
-    <!-- Painel Inferior Principal -->
-    <div id="bottom-panel" class="glass-panel">
-        
+    <div id="bottom-panel" class="glass-panel ui-element">
         <div class="value-display">
             <span class="value-label">Intensidade do Sinal</span>
             <span id="valor-sensor">--</span>
         </div>
-
         <div class="primary-actions">
-            <button id="btnConnect" class="btn-action">
-                <i data-lucide="bluetooth"></i> Conectar
-            </button>
-            <button id="btnCenter" class="btn-action" title="Centralizar Mapa">
-                <i data-lucide="navigation"></i>
-            </button>
+            <button id="btnConnect" class="btn-action"><i data-lucide="bluetooth"></i> Conectar</button>
+            <button id="btnCenter" class="btn-action" title="Centralizar Mapa"><i data-lucide="navigation"></i></button>
         </div>
-        
         <div class="legenda">
             <div class="legenda-item"><span class="dot" style="background:#007aff;"></span> 0-200</div>
             <div class="legenda-item"><span class="dot" style="background:#ffcc00;"></span> 200-800</div>
@@ -265,83 +285,120 @@
     </div>
 
 <script>
-    // Inicializa ícones Lucide
     lucide.createIcons();
 
-    // --- Configurações BLE ---
     const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
     const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
-    // --- Inicialização do Mapa ---
-    const map = L.map('map', { zoomControl: false }).setView([-23.5505, -46.6333], 15);
+    // Oculta controle de zoom e de atriuição para a foto ficar limpa
+    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-23.5505, -46.6333], 15);
     
-    const mapaPadrao = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+    // Cross-origin é importante para o dom-to-image conseguir capturar o mapa
+    const mapaPadrao = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { crossOrigin: true });
     const semMapa = L.layerGroup(); 
     mapaPadrao.addTo(map);
 
-    // --- CAMADAS DE DADOS ---
     let ptsBlue = [], ptsYellow = [], ptsRed = [];
     let layerBlue = L.heatLayer(ptsBlue, { radius: 15, blur: 10, gradient: {0.2: 'cyan', 0.65: '#007aff', 1.0: 'navy'} });
-    let layerYellow = L.heatLayer(ptsYellow, { radius: 15, blur: 10, gradient: {0.2: '#ffcc00', 0.65: '#ff9500', 1.0: '#ff3b30'} }); // Cores iOS
+    let layerYellow = L.heatLayer(ptsYellow, { radius: 15, blur: 10, gradient: {0.2: '#ffcc00', 0.65: '#ff9500', 1.0: '#ff3b30'} });
     let layerRed = L.heatLayer(ptsRed, { radius: 15, blur: 10, gradient: {0.2: '#ff3b30', 0.65: '#c51162', 1.0: '#8b0000'} });
-    
     const heatmapGroup = L.layerGroup([layerBlue, layerYellow, layerRed]).addTo(map);
 
     let userPathCoords = []; 
-    let userPathLine = L.polyline([], { color: '#af52de', weight: 5, opacity: 0.8, lineJoin: 'round' }); // Roxo iOS
+    let userPathLine = L.polyline([], { color: '#af52de', weight: 5, opacity: 0.8, lineJoin: 'round' });
     const rastroGroup = L.layerGroup([userPathLine]).addTo(map);
 
     let userCircle = null;
     const locationGroup = L.layerGroup().addTo(map);
 
-    // --- CONTROLE DE CAMADAS ---
-    const baseMaps = { "Mapa (Ruas)": mapaPadrao, "Fundo Limpo": semMapa };
-    const overlayMaps = { "Dados (Calor)": heatmapGroup, "Rastro": rastroGroup, "Localização": locationGroup };
-    L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map);
+    const baseMaps = { "🗺️ Ruas": mapaPadrao, "⬛ Fundo Escuro": semMapa };
+    const overlayMaps = { "🔥 Mapa de Calor": heatmapGroup, "📍 Caminho (Rastro)": rastroGroup, "🔵 Minha Posição": locationGroup };
+    
+    // O controle nativo do Leaflet recebe a classe ui-element via JS para ser ocultado na exportação
+    const layerControl = L.control.layers(baseMaps, overlayMaps, { position: 'topright', collapsed: true }).addTo(map);
+    layerControl.getContainer().classList.add('ui-element');
 
-    // Variáveis de Estado
     let currentLat = 0, currentLng = 0, bluetoothDevice = null, characteristic = null, isConnecting = false;
     let lastPointTime = 0;
     const POINT_INTERVAL = 400; 
     let pontosRegistrados = []; 
     const RAIO_MINIMO_METROS = 5;
 
-    // ====== UI LOGIC (Menus e Botões) ======
+    // --- LÓGICA DE EXPORTAÇÃO ---
+    document.getElementById('btnExport').addEventListener('click', async () => {
+        // Verifica se há dados para centralizar
+        let bounds = null;
+        if (userPathCoords.length > 0) {
+            bounds = L.polyline(userPathCoords).getBounds();
+        } else if (pontosRegistrados.length > 0) {
+            bounds = L.latLngBounds(pontosRegistrados);
+        }
+
+        const overlay = document.getElementById('export-overlay');
+        overlay.style.display = 'flex';
+
+        // Oculta toda a interface (painéis, botões flutuantes)
+        const uiElements = document.querySelectorAll('.ui-element');
+        uiElements.forEach(el => el.style.opacity = '0');
+
+        // Se houver dados, foca o mapa neles para a foto
+        const centerBefore = map.getCenter();
+        const zoomBefore = map.getZoom();
+        
+        if (bounds) {
+            map.fitBounds(bounds, { padding: [50, 50], animate: false });
+        }
+
+        // Dá um tempinho para o Leaflet carregar os tiles (imagens das ruas) na nova posição
+        setTimeout(async () => {
+            try {
+                const mapNode = document.getElementById('map');
+                const dataUrl = await domtoimage.toPng(mapNode, {
+                    width: mapNode.clientWidth,
+                    height: mapNode.clientHeight,
+                    style: { transform: 'scale(1)', transformOrigin: 'top left' }
+                });
+
+                // Cria um link temporário para forçar o download
+                const link = document.createElement('a');
+                link.download = `bingo-mapa-${new Date().getTime()}.png`;
+                link.href = dataUrl;
+                link.click();
+
+            } catch (error) {
+                console.error("Erro ao gerar imagem: ", error);
+                alert("Não foi possível gerar a imagem. Tente alterar o mapa base.");
+            } finally {
+                // Restaura a interface e a posição original
+                uiElements.forEach(el => el.style.opacity = '1');
+                if (bounds) map.setView(centerBefore, zoomBefore, { animate: false });
+                overlay.style.display = 'none';
+            }
+        }, 1000); // 1 segundo de espera para o mapa renderizar completamente
+    });
+
+    // --- UI LOGIC (Menus e Botões) ---
     const btnSettings = document.getElementById('btnSettings');
     const settingsSheet = document.getElementById('settingsSheet');
     const backdrop = document.getElementById('backdrop');
     const closeSheet = document.getElementById('closeSheet');
     
-    function toggleSheet() {
-        settingsSheet.classList.toggle('active');
-        backdrop.classList.toggle('active');
-    }
+    function toggleSheet() { settingsSheet.classList.toggle('active'); backdrop.classList.toggle('active'); }
     
     btnSettings.addEventListener('click', toggleSheet);
     backdrop.addEventListener('click', toggleSheet);
-    closeSheet.addEventListener('click', toggleSheet); // Puxar barra fecha
+    closeSheet.addEventListener('click', toggleSheet);
 
-    // Configurações
-    document.getElementById('darkModeToggle').addEventListener('change', (e) => {
-        document.body.classList.toggle('dark-mode', e.target.checked);
-    });
-
-    document.getElementById('opacitySlider').addEventListener('input', (e) => {
-        document.documentElement.style.setProperty('--panel-alpha', e.target.value);
-    });
-
-    document.getElementById('testPanelToggle').addEventListener('change', (e) => {
-        document.getElementById('manualTestArea').style.display = e.target.checked ? 'flex' : 'none';
-    });
-
-    // =====================================
+    document.getElementById('darkModeToggle').addEventListener('change', (e) => { document.body.classList.toggle('dark-mode', e.target.checked); });
+    document.getElementById('opacitySlider').addEventListener('input', (e) => { document.documentElement.style.setProperty('--panel-alpha', e.target.value); });
+    document.getElementById('testPanelToggle').addEventListener('change', (e) => { document.getElementById('manualTestArea').style.display = e.target.checked ? 'flex' : 'none'; });
 
     const statusText = document.getElementById('status-text');
     const statusIndicator = document.getElementById('status-indicator');
 
     function atualizarStatus(msg, state = 'normal') { 
         statusText.innerText = msg; 
-        statusIndicator.className = 'status-dot'; // reseta classes
+        statusIndicator.className = 'status-dot'; 
         if(state === 'connected') statusIndicator.classList.add('connected');
         if(state === 'disconnected') statusIndicator.classList.add('disconnected');
     }
@@ -351,7 +408,6 @@
         let valor = parseFloat(valorRaw);
         if (isNaN(valor)) return;
         
-        // Animação de entrada do valor
         const valorDisplay = document.getElementById('valor-sensor');
         valorDisplay.innerText = valor;
         valorDisplay.style.transform = 'scale(1.1)';
@@ -375,25 +431,17 @@
         else { ptsRed.push([currentLat, currentLng, intensidade]); layerRed.setLatLngs(ptsRed); }
     }
 
-    document.getElementById('btnAddManual').addEventListener('click', () => {
-        processarValor(document.getElementById('manualInput').value);
-    });
+    document.getElementById('btnAddManual').addEventListener('click', () => { processarValor(document.getElementById('manualInput').value); });
 
-    // --- CAPTURA DE LOCALIZAÇÃO ---
     if (navigator.geolocation) {
         navigator.geolocation.watchPosition(position => {
             currentLat = position.coords.latitude;
             currentLng = position.coords.longitude;
             const newLatLng = L.latLng(currentLat, currentLng);
 
-            if (userCircle) {
-                userCircle.setLatLng(newLatLng);
-            } else {
-                // Bolinha azul estilo nativo Apple Maps
-                userCircle = L.circleMarker(newLatLng, { 
-                    radius: 8, color: 'white', weight: 3, 
-                    fillColor: '#007aff', fillOpacity: 1 
-                });
+            if (userCircle) { userCircle.setLatLng(newLatLng); } 
+            else {
+                userCircle = L.circleMarker(newLatLng, { radius: 8, color: 'white', weight: 3, fillColor: '#007aff', fillOpacity: 1 });
                 locationGroup.addLayer(userCircle);
                 map.setView(newLatLng, 17);
             }
@@ -408,7 +456,6 @@
                     userPathLine.addLatLng(newLatLng);
                 }
             }
-
         }, null, { enableHighAccuracy: true });
     }
 
@@ -461,7 +508,7 @@
             const encoder = new TextEncoder();
             await characteristic.writeValue(encoder.encode("SHUTDOWN"));
             atualizarStatus("Desligando...", "disconnected");
-            toggleSheet(); // Fecha o menu ao enviar comando
+            toggleSheet();
         }
     });
 
@@ -469,12 +516,11 @@
 </script>
 
 <style>
-    /* Keyframe para o ícone de loading girar */
     @keyframes spin { 100% { transform: rotate(360deg); } }
     .lucide-spin { animation: spin 2s linear infinite; }
+    
+    @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
+    .lucide-pulse { animation: pulse 1.5s infinite; }
 </style>
 </body>
 </html>
-
-
-```
