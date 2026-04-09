@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -9,7 +10,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Biblioteca para exportar HTML para Imagem -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
 
     <style>
@@ -44,7 +44,7 @@
             transition: background 0.4s ease, border-color 0.4s ease;
         }
 
-        /* === HEADER (Status Superior) === */
+        /* === HEADER === */
         #header-status {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             z-index: 1000; padding: 8px 20px; border-radius: 30px;
@@ -55,14 +55,9 @@
         .status-dot.disconnected { background: var(--danger); }
 
         /* === BOTÕES FLUTUANTES ESQUERDA === */
-        .float-btn-group {
-            position: absolute; top: 20px; left: 20px; z-index: 1000;
-            display: flex; flex-direction: column; gap: 10px;
-        }
-        
+        .float-btn-group { position: absolute; top: 20px; left: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
         .float-btn {
-            width: 44px; height: 44px; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
+            width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
             border: none; cursor: pointer; color: var(--text-light);
             backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             background: var(--bg-light); border: 1px solid rgba(255,255,255,0.2);
@@ -94,14 +89,11 @@
         #btnConnect { background: var(--accent); }
         #btnCenter { background: rgba(0,0,0,0.05); color: var(--text-light); flex: 0 0 54px; padding: 0; }
         
-        .legenda { 
-            display: flex; justify-content: space-between; font-size: 11px; font-weight: 500;
-            padding: 10px 15px; background: rgba(0,0,0,0.03); border-radius: 12px;
-        }
+        .legenda { display: flex; justify-content: space-between; font-size: 11px; font-weight: 500; padding: 10px 15px; background: rgba(0,0,0,0.03); border-radius: 12px; }
         .legenda-item { display: flex; align-items: center; gap: 6px; }
         .dot { height: 8px; width: 8px; border-radius: 50%; }
 
-        /* === BOTTOM SHEET (Configurações) === */
+        /* === BOTTOM SHEET === */
         #settingsSheet {
             position: absolute; bottom: 0; left: 0; width: 100%; z-index: 2000;
             border-radius: 30px 30px 0 0; padding: 25px 20px 40px;
@@ -139,47 +131,20 @@
         #backdrop { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1500; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
         #backdrop.active { opacity: 1; pointer-events: auto; }
 
-        /* === ESTILIZAÇÃO DO CONTROLE DE CAMADAS DO LEAFLET === */
-        /* Movemos o controle de zoom para não conflitar com a estética */
+        /* === LEAFLET CONTROLS === */
         .leaflet-control-zoom { display: none; } 
-        
         .leaflet-control-layers {
-            border-radius: 20px !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 20px !important; border: 1px solid rgba(255, 255, 255, 0.2) !important;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
-            background: var(--bg-light) !important;
-            backdrop-filter: blur(15px) !important;
-            -webkit-backdrop-filter: blur(15px) !important;
+            background: var(--bg-light) !important; backdrop-filter: blur(15px) !important; -webkit-backdrop-filter: blur(15px) !important;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-            color: var(--text-light) !important;
-            padding: 8px !important;
-            margin-top: 20px !important;
-            margin-right: 20px !important;
+            color: var(--text-light) !important; padding: 8px !important; margin-top: 20px !important; margin-right: 20px !important;
             transition: all 0.4s ease;
         }
-
-        .leaflet-control-layers-expanded {
-            padding: 15px !important;
-            border-radius: 24px !important;
-        }
-
-        .leaflet-control-layers-separator {
-            border-top: 1px solid rgba(0,0,0,0.1) !important;
-            margin: 10px 0 !important;
-        }
-
-        .leaflet-control-layers label {
-            display: flex !important; align-items: center !important; gap: 8px !important;
-            margin-bottom: 8px !important; font-size: 14px !important; font-weight: 500 !important;
-            cursor: pointer;
-        }
-        
-        .leaflet-control-layers input[type="checkbox"], 
-        .leaflet-control-layers input[type="radio"] {
-            margin: 0 !important;
-            accent-color: var(--accent); /* Cor iOS para os botões do mapa */
-            width: 16px; height: 16px; cursor: pointer;
-        }
+        .leaflet-control-layers-expanded { padding: 15px !important; border-radius: 24px !important; }
+        .leaflet-control-layers-separator { border-top: 1px solid rgba(0,0,0,0.1) !important; margin: 10px 0 !important; }
+        .leaflet-control-layers label { display: flex !important; align-items: center !important; gap: 8px !important; margin-bottom: 8px !important; font-size: 14px !important; font-weight: 500 !important; cursor: pointer; }
+        .leaflet-control-layers input[type="checkbox"], .leaflet-control-layers input[type="radio"] { margin: 0 !important; accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
 
         /* === MODO ESCURO === */
         body.dark-mode { background: #000; color: var(--text-dark); }
@@ -190,16 +155,10 @@
         body.dark-mode .setting-row { border-bottom-color: rgba(255,255,255,0.05); }
         body.dark-mode .legenda { background: rgba(255,255,255,0.05); }
         body.dark-mode input[type="range"] { background: rgba(255,255,255,0.1); }
-        
-        body.dark-mode .leaflet-control-layers { 
-            background: rgba(28, 28, 30, 0.85) !important; 
-            color: #eee !important; 
-            border-color: rgba(255,255,255,0.1) !important;
-        }
+        body.dark-mode .leaflet-control-layers { background: rgba(28, 28, 30, 0.85) !important; color: #eee !important; border-color: rgba(255,255,255,0.1) !important; }
         body.dark-mode .leaflet-control-layers-separator { border-top-color: rgba(255,255,255,0.1) !important; }
         body.dark-mode .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
 
-        /* Overlay de Loading durante a Exportação */
         #export-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0,0,0,0.7); z-index: 9999; display: none;
@@ -217,7 +176,7 @@
         <h3 style="margin: 0; font-family: sans-serif;">Capturando Mapa...</h3>
     </div>
 
-    <!-- Interface (Classes 'ui-element' para esconder na hora de bater a foto) -->
+    <!-- UI Elements -->
     <div id="header-status" class="glass-panel ui-element">
         <div id="status-indicator" class="status-dot"></div>
         <span id="status-text">Procurando ESP32...</span>
@@ -287,13 +246,66 @@
 <script>
     lucide.createIcons();
 
+    // --- CARREGAMENTO DE CONFIGURAÇÕES SALVAS (Persistência) ---
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const opacitySlider = document.getElementById('opacitySlider');
+    const testPanelToggle = document.getElementById('testPanelToggle');
+    const manualTestArea = document.getElementById('manualTestArea');
+
+    function loadSettings() {
+        // 1. MODO ESCURO (Verifica LocalStorage, se não tiver, verifica preferência do Sistema iOS/Android)
+        const savedDarkMode = localStorage.getItem('bingoDarkMode');
+        if (savedDarkMode !== null) {
+            // Se o usuário já tiver escolhido manualmente antes
+            const isDark = savedDarkMode === 'true';
+            document.body.classList.toggle('dark-mode', isDark);
+            darkModeToggle.checked = isDark;
+        } else {
+            // Se for a primeira vez, olha pro sistema do celular/pc
+            const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            document.body.classList.toggle('dark-mode', prefersDarkScheme);
+            darkModeToggle.checked = prefersDarkScheme;
+        }
+
+        // 2. OPACIDADE DO HUD
+        const savedOpacity = localStorage.getItem('bingoOpacity');
+        if (savedOpacity !== null) {
+            document.documentElement.style.setProperty('--panel-alpha', savedOpacity);
+            opacitySlider.value = savedOpacity;
+        }
+
+        // 3. PAINEL DE TESTES
+        const savedTestPanel = localStorage.getItem('bingoTestPanel');
+        if (savedTestPanel === 'true') {
+            testPanelToggle.checked = true;
+            manualTestArea.style.display = 'flex';
+        }
+    }
+    
+    // Executa o carregamento imediatamente
+    loadSettings();
+
+    // --- EVENTOS DE SALVAMENTO DE CONFIGURAÇÕES ---
+    darkModeToggle.addEventListener('change', (e) => { 
+        document.body.classList.toggle('dark-mode', e.target.checked); 
+        localStorage.setItem('bingoDarkMode', e.target.checked);
+    });
+
+    opacitySlider.addEventListener('input', (e) => { 
+        document.documentElement.style.setProperty('--panel-alpha', e.target.value); 
+        localStorage.setItem('bingoOpacity', e.target.value);
+    });
+
+    testPanelToggle.addEventListener('change', (e) => { 
+        manualTestArea.style.display = e.target.checked ? 'flex' : 'none'; 
+        localStorage.setItem('bingoTestPanel', e.target.checked);
+    });
+
+    // --- MAPA E BLUETOOTH ---
     const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
     const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
-    // Oculta controle de zoom e de atriuição para a foto ficar limpa
     const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-23.5505, -46.6333], 15);
-    
-    // Cross-origin é importante para o dom-to-image conseguir capturar o mapa
     const mapaPadrao = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { crossOrigin: true });
     const semMapa = L.layerGroup(); 
     mapaPadrao.addTo(map);
@@ -314,7 +326,6 @@
     const baseMaps = { "🗺️ Ruas": mapaPadrao, "⬛ Fundo Escuro": semMapa };
     const overlayMaps = { "🔥 Mapa de Calor": heatmapGroup, "📍 Caminho (Rastro)": rastroGroup, "🔵 Minha Posição": locationGroup };
     
-    // O controle nativo do Leaflet recebe a classe ui-element via JS para ser ocultado na exportação
     const layerControl = L.control.layers(baseMaps, overlayMaps, { position: 'topright', collapsed: true }).addTo(map);
     layerControl.getContainer().classList.add('ui-element');
 
@@ -326,58 +337,45 @@
 
     // --- LÓGICA DE EXPORTAÇÃO ---
     document.getElementById('btnExport').addEventListener('click', async () => {
-        // Verifica se há dados para centralizar
         let bounds = null;
-        if (userPathCoords.length > 0) {
-            bounds = L.polyline(userPathCoords).getBounds();
-        } else if (pontosRegistrados.length > 0) {
-            bounds = L.latLngBounds(pontosRegistrados);
-        }
+        if (userPathCoords.length > 0) bounds = L.polyline(userPathCoords).getBounds();
+        else if (pontosRegistrados.length > 0) bounds = L.latLngBounds(pontosRegistrados);
 
         const overlay = document.getElementById('export-overlay');
         overlay.style.display = 'flex';
 
-        // Oculta toda a interface (painéis, botões flutuantes)
         const uiElements = document.querySelectorAll('.ui-element');
         uiElements.forEach(el => el.style.opacity = '0');
 
-        // Se houver dados, foca o mapa neles para a foto
         const centerBefore = map.getCenter();
         const zoomBefore = map.getZoom();
         
-        if (bounds) {
-            map.fitBounds(bounds, { padding: [50, 50], animate: false });
-        }
+        if (bounds) map.fitBounds(bounds, { padding: [50, 50], animate: false });
 
-        // Dá um tempinho para o Leaflet carregar os tiles (imagens das ruas) na nova posição
         setTimeout(async () => {
             try {
                 const mapNode = document.getElementById('map');
                 const dataUrl = await domtoimage.toPng(mapNode, {
-                    width: mapNode.clientWidth,
-                    height: mapNode.clientHeight,
+                    width: mapNode.clientWidth, height: mapNode.clientHeight,
                     style: { transform: 'scale(1)', transformOrigin: 'top left' }
                 });
 
-                // Cria um link temporário para forçar o download
                 const link = document.createElement('a');
                 link.download = `bingo-mapa-${new Date().getTime()}.png`;
                 link.href = dataUrl;
                 link.click();
-
             } catch (error) {
                 console.error("Erro ao gerar imagem: ", error);
                 alert("Não foi possível gerar a imagem. Tente alterar o mapa base.");
             } finally {
-                // Restaura a interface e a posição original
                 uiElements.forEach(el => el.style.opacity = '1');
                 if (bounds) map.setView(centerBefore, zoomBefore, { animate: false });
                 overlay.style.display = 'none';
             }
-        }, 1000); // 1 segundo de espera para o mapa renderizar completamente
+        }, 1000);
     });
 
-    // --- UI LOGIC (Menus e Botões) ---
+    // --- UI LOGIC ---
     const btnSettings = document.getElementById('btnSettings');
     const settingsSheet = document.getElementById('settingsSheet');
     const backdrop = document.getElementById('backdrop');
@@ -388,10 +386,6 @@
     btnSettings.addEventListener('click', toggleSheet);
     backdrop.addEventListener('click', toggleSheet);
     closeSheet.addEventListener('click', toggleSheet);
-
-    document.getElementById('darkModeToggle').addEventListener('change', (e) => { document.body.classList.toggle('dark-mode', e.target.checked); });
-    document.getElementById('opacitySlider').addEventListener('input', (e) => { document.documentElement.style.setProperty('--panel-alpha', e.target.value); });
-    document.getElementById('testPanelToggle').addEventListener('change', (e) => { document.getElementById('manualTestArea').style.display = e.target.checked ? 'flex' : 'none'; });
 
     const statusText = document.getElementById('status-text');
     const statusIndicator = document.getElementById('status-indicator');
@@ -518,7 +512,6 @@
 <style>
     @keyframes spin { 100% { transform: rotate(360deg); } }
     .lucide-spin { animation: spin 2s linear infinite; }
-    
     @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
     .lucide-pulse { animation: pulse 1.5s infinite; }
 </style>
