@@ -416,6 +416,13 @@
     </main>    
     
     <script>
+        // Força o recarregamento da página se o usuário voltar pelo botão do navegador (bfcache)
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
+
         // --- Registro do Service Worker ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
