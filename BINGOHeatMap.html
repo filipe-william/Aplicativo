@@ -25,40 +25,24 @@
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { 
-            margin: 0; padding: 0; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            overflow: hidden; background: #e5e5ea; color: var(--text-light);
-            transition: color 0.4s ease;
-        }
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; background: #e5e5ea; color: var(--text-light); transition: color 0.4s ease; }
 
         #capture-wrapper { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
         #map { height: 100%; width: 100%; }
         
         .glass-panel {
-            background: var(--bg-light);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            background: var(--bg-light); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             transition: background 0.4s ease, border-color 0.4s ease, transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.4s ease, left 0.4s ease, max-width 0.4s ease;
         }
 
-        /* === SELO DE EXPORTAÇÃO (CORRIGIDO) === */
+        /* === SELO DE EXPORTAÇÃO === */
         #export-watermark {
-            visibility: hidden; /* Mantém oculto mas presente no DOM */
-            opacity: 0;
-            position: absolute; bottom: 30px; right: 30px; 
-            z-index: 9999; /* Máxima prioridade para não ficar atrás do mapa */
-            display: flex; flex-direction: column; gap: 8px; padding: 20px; border-radius: 20px;
-            min-width: 180px; box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-            background: rgba(255, 255, 255, 0.98); /* Fundo sólido para garantir captura perfeita na foto */
-            color: #1c1c1e; /* Texto sempre escuro no selo */
-            transition: opacity 0.3s ease;
+            visibility: hidden; opacity: 0; position: absolute; bottom: 30px; right: 30px; z-index: 9999; 
+            display: flex; flex-direction: column; gap: 8px; padding: 20px; border-radius: 20px; min-width: 180px; box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.98); color: #1c1c1e; transition: opacity 0.3s ease;
         }
-        
         body.dark-mode #export-watermark { background: rgba(28, 28, 30, 0.98); color: #f2f2f7; }
-
         .wm-title { font-weight: 800; font-size: 16px; text-align: center; margin-bottom: 5px; letter-spacing: 0.5px;}
         .wm-stat { display: flex; justify-content: space-between; font-size: 14px; gap: 15px; }
         .wm-stat span:last-child { font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -68,11 +52,7 @@
         .dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0;}
 
         /* === HEADER === */
-        #header-status {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; padding: 8px 20px; border-radius: 30px;
-            display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; max-width: 50vw; 
-        }
+        #header-status { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 8px 20px; border-radius: 30px; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; max-width: 50vw; }
         #status-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity 0.3s, width 0.3s; }
         .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ffcc00; transition: background 0.3s; flex-shrink: 0;}
         .status-dot.connected { background: var(--success); }
@@ -89,20 +69,15 @@
         .float-btn-group { position: absolute; top: 20px; left: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
         .float-btn {
             width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            border: none; cursor: pointer; color: var(--text-light);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            background: var(--bg-light); border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.1s, background 0.3s, color 0.3s;
+            border: none; cursor: pointer; color: var(--text-light); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            background: var(--bg-light); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.1s, background 0.3s, color 0.3s;
         }
         .float-btn:active { transform: scale(0.92); }
         #btnLayersToggle { position: absolute; top: 20px; right: 20px; z-index: 1000; }
         #btnLayersToggle.active { background: var(--accent); color: white; }
 
         /* === PAINEL DE CAMADAS === */
-        #customLayersPanel {
-            position: absolute; top: 75px; right: 20px; z-index: 1000; padding: 20px; border-radius: 24px; min-width: 220px;
-            transform-origin: top right; transform: scale(0.9) translateY(-10px); opacity: 0; pointer-events: none;
-        }
+        #customLayersPanel { position: absolute; top: 75px; right: 20px; z-index: 1000; padding: 20px; border-radius: 24px; min-width: 220px; transform-origin: top right; transform: scale(0.9) translateY(-10px); opacity: 0; pointer-events: none; }
         #customLayersPanel.active { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
         .layer-section { margin-bottom: 20px; }
         .layer-section:last-child { margin-bottom: 0; }
@@ -110,80 +85,65 @@
         .layer-row { display: flex; gap: 15px; justify-content: flex-start; flex-wrap: wrap; }
         .layer-item { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 60px; }
         .layer-item span { font-size: 11px; font-weight: 500; text-align: center; line-height: 1.1; }
-        .layer-round-btn {
-            width: 54px; height: 54px; border-radius: 50%; border: none; display: flex; justify-content: center; align-items: center; cursor: pointer;
-            background: rgba(0, 0, 0, 0.06); color: var(--text-light); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
-        }
+        .layer-round-btn { width: 54px; height: 54px; border-radius: 50%; border: none; display: flex; justify-content: center; align-items: center; cursor: pointer; background: rgba(0, 0, 0, 0.06); color: var(--text-light); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05); }
         .layer-round-btn.active { background: var(--accent); color: white; box-shadow: 0 8px 20px rgba(0, 122, 255, 0.35); transform: scale(1.05); }
         .layer-round-btn:active { transform: scale(0.92); }
         .layer-divider { border: none; border-top: 1px solid rgba(0,0,0,0.1); margin: 15px 0; }
 
         /* === PAINEL INFERIOR === */
-        #bottom-panel {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; width: 92%; max-width: 400px; border-radius: var(--border-radius); padding: 20px;
-            display: flex; flex-direction: column; gap: 15px;
-        }
+        #bottom-panel { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; width: 92%; max-width: 400px; border-radius: var(--border-radius); padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         #bottom-panel.hidden-panel { transform: translate(-50%, 150%); opacity: 0; pointer-events: none; }
 
-        #btnStatsToggle {
-            position: absolute; top: 15px; left: 15px; width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;
-            background: rgba(0,0,0,0.05); color: var(--text-light); display: flex; justify-content: center; align-items: center;
-            transition: background 0.2s, transform 0.2s; z-index: 2;
-        }
-        #btnStatsToggle:active { transform: scale(0.9); }
-        #btnStatsToggle.active { background: var(--accent); color: white; }
+        #btnStatsToggle, #btnTableToggle { position: absolute; top: 15px; width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; background: rgba(0,0,0,0.05); color: var(--text-light); display: flex; justify-content: center; align-items: center; transition: background 0.2s, transform 0.2s; z-index: 2; }
+        #btnStatsToggle { left: 15px; } #btnTableToggle { right: 15px; }
+        #btnStatsToggle:active, #btnTableToggle:active { transform: scale(0.9); }
+        #btnStatsToggle.active, #btnTableToggle.active { background: var(--accent); color: white; }
 
-        #stats-panel {
-            display: flex; flex-direction: column; gap: 10px; overflow: hidden; max-height: 0; opacity: 0;
-            transition: max-height 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s ease, margin 0.3s ease;
-        }
+        #stats-panel { display: flex; flex-direction: column; gap: 10px; overflow: hidden; max-height: 0; opacity: 0; transition: max-height 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s ease, margin 0.3s ease; }
         #stats-panel.active { max-height: 150px; opacity: 1; margin-top: 10px; margin-bottom: 5px; }
-        
         .stat-row { display: flex; align-items: center; justify-content: space-between; font-size: 14px; padding: 0 10px; }
         .stat-label { display: flex; align-items: center; gap: 8px; opacity: 0.7; font-weight: 500; }
         .stat-value { font-weight: 700; font-variant-numeric: tabular-nums; }
-
         .value-display { text-align: center; display: flex; flex-direction: column; align-items: center; margin-top: 5px; }
         .value-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; }
         #valor-sensor { font-size: 42px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; margin-top: 5px;}
-
         .primary-actions { display: flex; gap: 12px; }
-        .btn-action {
-            flex: 1; border: none; padding: 14px; border-radius: 16px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;
-            transition: all 0.2s; color: white;
-        }
+        .btn-action { flex: 1; border: none; padding: 14px; border-radius: 16px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: all 0.2s; color: white; }
         .btn-action:active { transform: scale(0.96); }
         #btnConnect { background: var(--accent); }
         #btnCenter { background: rgba(0,0,0,0.05); color: var(--text-light); flex: 0 0 54px; padding: 0; }
-        
         .legenda { display: flex; justify-content: space-between; font-size: 11px; font-weight: 500; padding: 10px 15px; background: rgba(0,0,0,0.03); border-radius: 12px; }
         .legenda-item { display: flex; align-items: center; gap: 6px; }
 
-        /* === CONFIGS === */
-        #settingsSheet {
-            position: absolute; bottom: 0; left: 0; width: 100%; z-index: 2000; border-radius: 30px 30px 0 0; padding: 25px 20px 40px;
-            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        #settingsSheet.active { transform: translateY(0); }
-        .sheet-handle { width: 40px; height: 5px; background: rgba(0,0,0,0.2); border-radius: 10px; margin: 0 auto 20px; }
-        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        /* === BOTTOM SHEETS === */
+        .bottom-sheet { position: absolute; bottom: 0; left: 0; width: 100%; z-index: 2000; border-radius: 30px 30px 0 0; padding: 25px 20px 40px; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); border: 1px solid rgba(255, 255, 255, 0.1); max-height: 85vh; display: flex; flex-direction: column; }
+        .bottom-sheet.active { transform: translateY(0); }
+        .sheet-handle { width: 40px; height: 5px; background: rgba(0,0,0,0.2); border-radius: 10px; margin: 0 auto 20px; flex-shrink: 0; }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(0,0,0,0.05); flex-shrink: 0;}
         .setting-row:last-child { border-bottom: none; }
         .setting-info { display: flex; flex-direction: column; gap: 4px; }
         .setting-title { font-size: 16px; font-weight: 500; }
         .setting-desc { font-size: 12px; opacity: 0.6; }
-        .toggle-switch {
-            position: relative; width: 50px; height: 30px; appearance: none; background: #e5e5ea; border-radius: 30px; outline: none; cursor: pointer; transition: background 0.3s;
-        }
-        .toggle-switch::after {
-            content: ''; position: absolute; top: 2px; left: 2px; width: 26px; height: 26px; background: white; border-radius: 50%;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
+        .toggle-switch { position: relative; width: 50px; height: 30px; appearance: none; background: #e5e5ea; border-radius: 30px; outline: none; cursor: pointer; transition: background 0.3s; }
+        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 26px; height: 26px; background: white; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .toggle-switch:checked { background: var(--success); }
         .toggle-switch:checked::after { transform: translateX(20px); }
         input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; background: rgba(0,0,0,0.1); border-radius: 5px; outline: none; margin-top: 10px; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer; }
-        #btnShutdown { width: 100%; background: rgba(255, 59, 48, 0.1); color: var(--danger); border: none; padding: 15px; border-radius: 16px; font-weight: 600; font-size: 16px; margin-top: 20px; cursor: pointer; display: flex; justify-content: center; gap: 8px; }
+        
+        .btn-large-action { width: 100%; border: none; padding: 15px; border-radius: 16px; font-weight: 600; font-size: 16px; margin-top: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; flex-shrink: 0; transition: transform 0.1s;}
+        .btn-large-action:active { transform: scale(0.98); }
+        
+        .btn-danger { background: rgba(255, 59, 48, 0.1); color: var(--danger); }
+        .btn-primary { background: var(--accent); color: white; }
+
+        .materials-container { overflow-y: auto; margin-top: 10px; padding-bottom: 20px; }
+        .material-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 15px; align-items: center; }
+        .material-row:last-child { border-bottom: none; }
+        .material-name { font-weight: 500; display: flex; align-items: center; gap: 10px; }
+        .material-value { font-weight: 700; opacity: 0.9; font-variant-numeric: tabular-nums; }
+        .materials-container::-webkit-scrollbar { width: 6px; }
+        .materials-container::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
 
         #backdrop { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1500; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
         #backdrop.active { opacity: 1; pointer-events: auto; }
@@ -193,18 +153,19 @@
         body.dark-mode { background: #000; color: var(--text-dark); }
         body.dark-mode .glass-panel { background: var(--bg-dark); border-color: rgba(255,255,255,0.05); }
         body.dark-mode .float-btn { color: var(--text-dark); background: var(--bg-dark); }
-        body.dark-mode #btnCenter, body.dark-mode #btnStatsToggle { background: rgba(255,255,255,0.1); color: var(--text-dark); }
-        body.dark-mode #btnStatsToggle.active { background: var(--accent); color: white; }
+        body.dark-mode #btnCenter, body.dark-mode #btnStatsToggle, body.dark-mode #btnTableToggle { background: rgba(255,255,255,0.1); color: var(--text-dark); }
+        body.dark-mode #btnStatsToggle.active, body.dark-mode #btnTableToggle.active { background: var(--accent); color: white; }
         body.dark-mode .sheet-handle { background: rgba(255,255,255,0.2); }
-        body.dark-mode .setting-row { border-bottom-color: rgba(255,255,255,0.05); }
+        body.dark-mode .setting-row, body.dark-mode .material-row { border-bottom-color: rgba(255,255,255,0.05); }
         body.dark-mode .legenda { background: rgba(255,255,255,0.05); }
         body.dark-mode input[type="range"] { background: rgba(255,255,255,0.1); }
         body.dark-mode .layer-divider { border-top-color: rgba(255,255,255,0.1); }
         body.dark-mode .layer-round-btn { background: rgba(255, 255, 255, 0.1); color: var(--text-dark); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); }
         body.dark-mode .layer-round-btn.active { background: var(--accent); color: white; }
         body.dark-mode .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
+        body.dark-mode .materials-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); }
 
-        #export-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 99999; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
+        #export-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 99999; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
     </style>
 </head>
 <body>
@@ -212,7 +173,6 @@
     <div id="capture-wrapper">
         <div id="map"></div>
         
-        <!-- SELO DE DADOS: Oculto via CSS visibility para dom-to-image renderizar bem depois -->
         <div id="export-watermark">
             <div class="wm-title">Relatório BingoApp</div>
             <hr class="wm-divider">
@@ -230,8 +190,8 @@
 
     <div id="backdrop"></div>
     <div id="export-overlay">
-        <i data-lucide="camera" style="width: 48px; height: 48px; margin-bottom: 10px;" class="lucide-pulse"></i>
-        <h3 style="margin: 0; font-family: sans-serif;">Processando Relatório...</h3>
+        <i data-lucide="download-cloud" style="width: 48px; height: 48px; margin-bottom: 10px;" class="lucide-pulse"></i>
+        <h3 style="margin: 0; font-family: sans-serif;">Exportando Dados...</h3>
     </div>
 
     <div id="header-status" class="glass-panel ui-element">
@@ -265,33 +225,66 @@
         </div>
     </div>
 
-    <div id="settingsSheet" class="glass-panel ui-element">
-        <div class="sheet-handle" id="closeSheet"></div>
-        <div class="setting-row">
-            <div class="setting-info"><span class="setting-title">Modo Escuro</span><span class="setting-desc">Inverte as cores</span></div>
-            <input type="checkbox" class="toggle-switch" id="darkModeToggle">
+    <!-- BOTTOM SHEET: Configurações -->
+    <div id="settingsSheet" class="glass-panel ui-element bottom-sheet">
+        <div class="sheet-handle" id="closeSettingsSheet"></div>
+        <div style="overflow-y: auto; padding-bottom: 20px;" class="materials-container"> 
+            <div class="setting-row">
+                <div class="setting-info"><span class="setting-title">Modo Escuro</span><span class="setting-desc">Inverte as cores</span></div>
+                <input type="checkbox" class="toggle-switch" id="darkModeToggle">
+            </div>
+            <div class="setting-row">
+                <div class="setting-info"><span class="setting-title">Mostrar Painel Principal</span><span class="setting-desc">Sinal e controlos</span></div>
+                <input type="checkbox" class="toggle-switch" id="mainPanelToggle" checked>
+            </div>
+            <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 5px;">
+                <div class="setting-info" style="width: 100%;"><span class="setting-title">Transparência da Interface</span></div>
+                <input type="range" id="opacitySlider" min="0.3" max="1" step="0.05" value="0.75">
+            </div>
+            <div class="setting-row">
+                <div class="setting-info"><span class="setting-title">Painel de Testes</span><span class="setting-desc">Simular hardware</span></div>
+                <input type="checkbox" class="toggle-switch" id="testPanelToggle">
+            </div>
+            <div id="manualTestArea" style="display: none; margin-top: 15px; gap: 10px;">
+                <input type="number" id="manualInput" placeholder="Valor (ex: 300)" style="flex:1; padding:12px; border-radius:12px; border:none; background:rgba(0,0,0,0.05); font-size:16px;">
+                <button id="btnAddManual" style="padding:12px 20px; border-radius:12px; border:none; background:var(--success); color:white; font-weight:bold;">Testar</button>
+            </div>
+            
+            <hr class="layer-divider">
+            <h3 style="font-size: 14px; opacity: 0.6; text-transform: uppercase; margin-bottom: 5px;">Ações da Exploração</h3>
+            
+            <!-- NOVO: Botão de Salvar Tudo -->
+            <button id="btnSaveExploration" class="btn-large-action btn-primary">
+                <i data-lucide="save"></i> Salvar Dados Completos (TXT + Mapa)
+            </button>
+            
+            <button id="btnShutdown" class="btn-large-action btn-danger">
+                <i data-lucide="power"></i> Desligar Bingo
+            </button>
         </div>
-        <div class="setting-row">
-            <div class="setting-info"><span class="setting-title">Mostrar Painel Principal</span><span class="setting-desc">Sinal e controlos</span></div>
-            <input type="checkbox" class="toggle-switch" id="mainPanelToggle" checked>
+    </div>
+
+    <!-- BOTTOM SHEET: Tabela de Materiais -->
+    <div id="materialsSheet" class="glass-panel ui-element bottom-sheet">
+        <div class="sheet-handle" id="closeMaterialsSheet"></div>
+        <h3 style="margin: 0 0 15px 0; text-align: center; font-size: 18px;">Guia de Magnetismo</h3>
+        <div class="materials-container">
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#007aff;"></span>Ossos</span><span class="material-value">90</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#007aff;"></span>Cerâmica</span><span class="material-value">150</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Obsidiana</span><span class="material-value">210</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Sílex</span><span class="material-value">280</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Pedra (Ferramentas)</span><span class="material-value">320</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Granito</span><span class="material-value">360</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Ouro</span><span class="material-value">520</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Cobre</span><span class="material-value">780</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ff3b30;"></span>Bronze</span><span class="material-value">950</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ff3b30;"></span>Ferro</span><span class="material-value">1700</span></div>
         </div>
-        <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 5px;">
-            <div class="setting-info" style="width: 100%;"><span class="setting-title">Transparência da Interface</span></div>
-            <input type="range" id="opacitySlider" min="0.3" max="1" step="0.05" value="0.75">
-        </div>
-        <div class="setting-row">
-            <div class="setting-info"><span class="setting-title">Painel de Testes</span><span class="setting-desc">Simular hardware</span></div>
-            <input type="checkbox" class="toggle-switch" id="testPanelToggle">
-        </div>
-        <div id="manualTestArea" style="display: none; margin-top: 15px; gap: 10px;">
-            <input type="number" id="manualInput" placeholder="Valor (ex: 300)" style="flex:1; padding:12px; border-radius:12px; border:none; background:rgba(0,0,0,0.05); font-size:16px;">
-            <button id="btnAddManual" style="padding:12px 20px; border-radius:12px; border:none; background:var(--success); color:white; font-weight:bold;">Testar</button>
-        </div>
-        <button id="btnShutdown"><i data-lucide="power"></i> Desligar Bingo</button>
     </div>
 
     <div id="bottom-panel" class="glass-panel ui-element">
         <button id="btnStatsToggle" title="Ver Estatísticas"><i data-lucide="bar-chart-2" style="width: 18px; height: 18px;"></i></button>
+        <button id="btnTableToggle" title="Tabela de Materiais"><i data-lucide="book-open" style="width: 18px; height: 18px;"></i></button>
 
         <div class="value-display">
             <span class="value-label">Intensidade do Sinal</span>
@@ -318,11 +311,12 @@
 <script>
     lucide.createIcons();
 
-    // --- VARIÁVEIS DE ESTATÍSTICAS ---
+    // --- VARIÁVEIS DE ESTATÍSTICAS E LOGGING ---
     let totalDistanceMeters = 0;
     let totalReadsESP32 = 0;
     let sessionStartTime = null;
     let timerInterval = null;
+    let sessionLog = []; // Onde guardamos a tabela de dados brutos
 
     const statTimeEl = document.getElementById('stat-time');
     const statDistEl = document.getElementById('stat-dist');
@@ -399,12 +393,7 @@
 
     // --- LEAFLET ---
     const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-23.5505, -46.6333], 15);
-    
-    const layerObjetos = {
-        mapasBase: { 'ruas': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { crossOrigin: true }), 'escuro': L.layerGroup() },
-        overlays: { 'calor': L.layerGroup(), 'rastro': L.layerGroup(), 'posicao': L.layerGroup() }
-    };
-
+    const layerObjetos = { mapasBase: { 'ruas': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { crossOrigin: true }), 'escuro': L.layerGroup() }, overlays: { 'calor': L.layerGroup(), 'rastro': L.layerGroup(), 'posicao': L.layerGroup() } };
     layerObjetos.mapasBase['ruas'].addTo(map);
 
     let ptsBlue = [], ptsYellow = [], ptsRed = [];
@@ -453,97 +442,12 @@
         });
     });
 
-    // --- MAPEAMENTO E TESTE ---
+    // --- MAPEAMENTO ---
     let currentLat = 0, currentLng = 0, bluetoothDevice = null, characteristic = null, isConnecting = false;
     let lastPointTime = 0;
     const POINT_INTERVAL = 400; 
     let pontosRegistrados = []; 
     const RAIO_MINIMO_METROS = 5;
-
-    // --- EXPORTAÇÃO INTELIGENTE (CORRIGIDA Z-INDEX) ---
-    document.getElementById('btnExport').addEventListener('click', async () => {
-        let bounds = null;
-        if (userPathCoords.length > 0) bounds = L.polyline(userPathCoords).getBounds();
-        else if (pontosRegistrados.length > 0) bounds = L.latLngBounds(pontosRegistrados);
-
-        const overlay = document.getElementById('export-overlay');
-        overlay.style.display = 'flex';
-
-        // 1. Esconde a UI Interativa
-        const uiElements = document.querySelectorAll('.ui-element');
-        uiElements.forEach(el => el.style.opacity = '0');
-
-        // 2. Prepara o Selo (Watermark)
-        const watermark = document.getElementById('export-watermark');
-        document.getElementById('wm-time').innerText = statTimeEl.innerText;
-        document.getElementById('wm-dist').innerText = statDistEl.innerText;
-        document.getElementById('wm-reads').innerText = statReadsEl.innerText;
-        
-        // Em vez de display: none/flex, usamos visibility e opacity para forçar a renderização correta
-        watermark.style.visibility = 'visible';
-        watermark.style.opacity = '1';
-
-        const centerBefore = map.getCenter();
-        const zoomBefore = map.getZoom();
-        
-        // Foca no caminho com margem
-        if (bounds) map.fitBounds(bounds, { paddingBottomRight: [250, 250], paddingTopLeft: [50, 50], animate: false });
-
-        setTimeout(async () => {
-            try {
-                const captureNode = document.getElementById('capture-wrapper');
-                const dataUrl = await domtoimage.toPng(captureNode, {
-                    width: captureNode.clientWidth, height: captureNode.clientHeight,
-                    style: { transform: 'scale(1)', transformOrigin: 'top left' }
-                });
-
-                const link = document.createElement('a');
-                link.download = `Relatorio-BingoApp-${new Date().getTime()}.png`;
-                link.href = dataUrl;
-                link.click();
-            } catch (error) {
-                console.error("Erro ao gerar imagem: ", error);
-                alert("Não foi possível gerar a imagem. Tente alterar o mapa base.");
-            } finally {
-                // Restaura o layout normal
-                uiElements.forEach(el => el.style.opacity = '');
-                watermark.style.visibility = 'hidden'; 
-                watermark.style.opacity = '0';
-                if (bounds) map.setView(centerBefore, zoomBefore, { animate: false });
-                overlay.style.display = 'none';
-            }
-        }, 1200);
-    });
-
-    // --- LÓGICA DO MENU DE CONFIGURAÇÕES ---
-    const btnSettings = document.getElementById('btnSettings');
-    const settingsSheet = document.getElementById('settingsSheet');
-    const backdrop = document.getElementById('backdrop');
-    const closeSheet = document.getElementById('closeSheet');
-    
-    function toggleSheet() { 
-        settingsSheet.classList.toggle('active'); 
-        backdrop.classList.toggle('active'); 
-        if(customLayersPanel.classList.contains('active')){
-            customLayersPanel.classList.remove('active');
-            btnLayersToggle.classList.remove('active');
-            headerStatusElement.classList.remove('shifted');
-        }
-    }
-    
-    btnSettings.addEventListener('click', toggleSheet);
-    backdrop.addEventListener('click', toggleSheet);
-    closeSheet.addEventListener('click', toggleSheet);
-
-    const statusText = document.getElementById('status-text');
-    const statusIndicator = document.getElementById('status-indicator');
-
-    function atualizarStatus(msg, state = 'normal') { 
-        statusText.innerText = msg; 
-        statusIndicator.className = 'status-dot'; 
-        if(state === 'connected') statusIndicator.classList.add('connected');
-        if(state === 'disconnected') statusIndicator.classList.add('disconnected');
-    }
 
     function processarValor(valorRaw) {
         if (!valorRaw) return;
@@ -573,12 +477,160 @@
         statReadsEl.innerText = totalReadsESP32;
 
         let intensidade = 0.6;
-        if (valor < 200) { ptsBlue.push([currentLat, currentLng, intensidade]); layerBlue.setLatLngs(ptsBlue); }
-        else if (valor <= 800) { ptsYellow.push([currentLat, currentLng, intensidade]); layerYellow.setLatLngs(ptsYellow); }
-        else { ptsRed.push([currentLat, currentLng, intensidade]); layerRed.setLatLngs(ptsRed); }
+        let zona = "";
+
+        if (valor < 200) { 
+            ptsBlue.push([currentLat, currentLng, intensidade]); layerBlue.setLatLngs(ptsBlue); 
+            zona = "Baixo (Azul)";
+        } else if (valor <= 800) { 
+            ptsYellow.push([currentLat, currentLng, intensidade]); layerYellow.setLatLngs(ptsYellow); 
+            zona = "Médio (Amarelo)";
+        } else { 
+            ptsRed.push([currentLat, currentLng, intensidade]); layerRed.setLatLngs(ptsRed); 
+            zona = "Alto (Vermelho)";
+        }
+
+        // SALVAR NO LOG DE EXPORTAÇÃO
+        sessionLog.push({
+            time: new Date().toLocaleTimeString(),
+            lat: currentLat.toFixed(6),
+            lng: currentLng.toFixed(6),
+            value: valor,
+            zone: zona
+        });
     }
 
     document.getElementById('btnAddManual').addEventListener('click', () => { processarValor(document.getElementById('manualInput').value); });
+
+    // --- MOTOR DE EXPORTAÇÃO (FOTO + TXT) ---
+    async function executarExportacao(incluirTexto = false) {
+        let bounds = null;
+        if (userPathCoords.length > 0) bounds = L.polyline(userPathCoords).getBounds();
+        else if (pontosRegistrados.length > 0) bounds = L.latLngBounds(pontosRegistrados);
+
+        const overlay = document.getElementById('export-overlay');
+        overlay.style.display = 'flex';
+
+        const uiElements = document.querySelectorAll('.ui-element');
+        uiElements.forEach(el => el.style.opacity = '0');
+
+        const watermark = document.getElementById('export-watermark');
+        document.getElementById('wm-time').innerText = statTimeEl.innerText;
+        document.getElementById('wm-dist').innerText = statDistEl.innerText;
+        document.getElementById('wm-reads').innerText = statReadsEl.innerText;
+        
+        watermark.style.visibility = 'visible';
+        watermark.style.opacity = '1';
+
+        const centerBefore = map.getCenter();
+        const zoomBefore = map.getZoom();
+        
+        if (bounds) map.fitBounds(bounds, { paddingBottomRight: [250, 250], paddingTopLeft: [50, 50], animate: false });
+
+        setTimeout(async () => {
+            try {
+                const timestamp = new Date().getTime();
+                
+                // 1. Exporta a Imagem
+                const captureNode = document.getElementById('capture-wrapper');
+                const dataUrl = await domtoimage.toPng(captureNode, {
+                    width: captureNode.clientWidth, height: captureNode.clientHeight,
+                    style: { transform: 'scale(1)', transformOrigin: 'top left' }
+                });
+
+                const linkImg = document.createElement('a');
+                linkImg.download = `Mapa-BingoApp-${timestamp}.png`;
+                linkImg.href = dataUrl;
+                linkImg.click();
+
+                // 2. Exporta o Ficheiro TXT (se solicitado pelo botão das configurações)
+                if (incluirTexto) {
+                    let texto = "=================================================\n";
+                    texto += "        RELATÓRIO DE EXPLORAÇÃO - BINGOAPP       \n";
+                    texto += "=================================================\n\n";
+                    texto += `Data: ${new Date().toLocaleDateString()}\n`;
+                    texto += `Tempo de Exploração: ${statTimeEl.innerText}\n`;
+                    texto += `Distância Percorrida: ${statDistEl.innerText}\n`;
+                    texto += `Total de Leituras Válidas: ${statReadsEl.innerText}\n\n`;
+                    
+                    texto += "-------------------------------------------------\n";
+                    texto += "DADOS CAPTURADOS:\n";
+                    texto += "HORA      | LATITUDE    | LONGITUDE   | VALOR | ZONA\n";
+                    texto += "-------------------------------------------------\n";
+                    
+                    if (sessionLog.length === 0) {
+                        texto += "Nenhum dado de magnetismo registado nesta sessão.\n";
+                    } else {
+                        sessionLog.forEach(log => {
+                            texto += `${log.time}  | ${log.lat}  | ${log.lng}  | ${log.value.toString().padStart(5, ' ')} | ${log.zone}\n`;
+                        });
+                    }
+                    texto += "=================================================\n";
+
+                    const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
+                    const linkTxt = document.createElement('a');
+                    linkTxt.href = URL.createObjectURL(blob);
+                    linkTxt.download = `Dados-BingoApp-${timestamp}.txt`;
+                    
+                    // Um pequeno atraso para o browser não bloquear o segundo download
+                    setTimeout(() => linkTxt.click(), 500);
+                }
+
+            } catch (error) {
+                console.error("Erro na exportação: ", error);
+                alert("Falha ao exportar. Tente alterar o mapa base.");
+            } finally {
+                uiElements.forEach(el => el.style.opacity = '');
+                watermark.style.visibility = 'hidden'; 
+                watermark.style.opacity = '0';
+                if (bounds) map.setView(centerBefore, zoomBefore, { animate: false });
+                overlay.style.display = 'none';
+            }
+        }, 1200);
+    }
+
+    // Botão apenas Foto (Câmara flutuante)
+    document.getElementById('btnExport').addEventListener('click', () => executarExportacao(false));
+    
+    // Botão Completo (Configurações)
+    document.getElementById('btnSaveExploration').addEventListener('click', () => {
+        closeAllPanels(); // Fecha o menu primeiro
+        executarExportacao(true); // true = inclui o ficheiro .txt
+    });
+
+    // --- GESTÃO DE BOTTOM SHEETS ---
+    const btnSettings = document.getElementById('btnSettings');
+    const settingsSheet = document.getElementById('settingsSheet');
+    const btnTableToggle = document.getElementById('btnTableToggle');
+    const materialsSheet = document.getElementById('materialsSheet');
+    const backdrop = document.getElementById('backdrop');
+
+    function closeAllPanels() {
+        settingsSheet.classList.remove('active');
+        materialsSheet.classList.remove('active');
+        backdrop.classList.remove('active');
+        if(customLayersPanel.classList.contains('active')){
+            customLayersPanel.classList.remove('active');
+            btnLayersToggle.classList.remove('active');
+            headerStatusElement.classList.remove('shifted');
+        }
+    }
+
+    btnSettings.addEventListener('click', () => { closeAllPanels(); settingsSheet.classList.add('active'); backdrop.classList.add('active'); });
+    btnTableToggle.addEventListener('click', () => { closeAllPanels(); materialsSheet.classList.add('active'); backdrop.classList.add('active'); });
+    backdrop.addEventListener('click', closeAllPanels);
+    document.getElementById('closeSettingsSheet').addEventListener('click', closeAllPanels);
+    document.getElementById('closeMaterialsSheet').addEventListener('click', closeAllPanels);
+
+    const statusText = document.getElementById('status-text');
+    const statusIndicator = document.getElementById('status-indicator');
+
+    function atualizarStatus(msg, state = 'normal') { 
+        statusText.innerText = msg; 
+        statusIndicator.className = 'status-dot'; 
+        if(state === 'connected') statusIndicator.classList.add('connected');
+        if(state === 'disconnected') statusIndicator.classList.add('disconnected');
+    }
 
     if (navigator.geolocation) {
         navigator.geolocation.watchPosition(position => {
@@ -666,7 +718,7 @@
             const encoder = new TextEncoder();
             await characteristic.writeValue(encoder.encode("SHUTDOWN"));
             atualizarStatus("Desligando...", "disconnected");
-            toggleSheet();
+            closeAllPanels();
         }
     });
 
