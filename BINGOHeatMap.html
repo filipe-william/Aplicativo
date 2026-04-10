@@ -27,47 +27,86 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; background: #e5e5ea; color: var(--text-light); transition: color 0.4s ease; }
 
-        /* === ANIMAÇÕES DE MOTION DESIGN (INTRODUÇÃO) === */
+        /* === 1. MOTION DESIGN: ONDA TECNOLÓGICA E ENTRADA === */
         #intro-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(229, 229, 234, 0.95); 
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            background: #010a1f; /* Fundo base escuro tecnológico */
             z-index: 100000; display: flex; justify-content: center; align-items: center;
             transition: opacity 0.8s cubic-bezier(0.32, 0.72, 0, 1), transform 0.8s cubic-bezier(0.32, 0.72, 0, 1);
+            overflow: hidden;
         }
-        body.dark-mode #intro-overlay { background: rgba(0, 0, 0, 0.95); }
+
+        /* Container das ondas fluidas */
+        .tech-wave-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            overflow: hidden; z-index: 0;
+        }
+
+        /* Bolhas amorfas rolando para criar o efeito fluido de "onda" */
+        .wave-blob {
+            position: absolute;
+            background: radial-gradient(circle, rgba(0, 122, 255, 0.5) 0%, rgba(0, 0, 0, 0) 70%);
+            border-radius: 45% 55% 40% 60% / 55% 45% 60% 40%;
+            animation: waveSpin 12s infinite linear;
+            filter: blur(40px); /* O desfoque extremo mistura as cores como líquido */
+        }
         
-        .intro-logo { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .wave-blob:nth-child(1) { bottom: -20vh; left: -10vw; width: 120vw; height: 120vw; }
+        .wave-blob:nth-child(2) {
+            bottom: -30vh; left: 30vw; width: 100vw; height: 100vw;
+            background: radial-gradient(circle, rgba(0, 198, 255, 0.4) 0%, rgba(0, 0, 0, 0) 70%);
+            animation: waveSpin 15s infinite linear reverse;
+        }
+        .wave-blob:nth-child(3) {
+            top: -20vh; right: -20vw; width: 80vw; height: 80vw;
+            background: radial-gradient(circle, rgba(0, 80, 255, 0.3) 0%, rgba(0, 0, 0, 0) 70%);
+            animation: waveSpin 20s infinite linear;
+        }
+
+        @keyframes waveSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
         
-        /* Estilo e Animação da Logo da Equipe */
+        /* Conteúdo Frontal (Logo e Letras) */
+        .intro-content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        
         .custom-logo {
-            width: 160px; /* Tamanho da logo */
-            height: auto;
+            width: 160px; height: auto;
             animation: floatAndPulse 3s ease-in-out infinite;
-            filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.2));
+            filter: drop-shadow(0 15px 35px rgba(0, 198, 255, 0.3));
             will-change: transform;
         }
-        body.dark-mode .custom-logo {
-            filter: drop-shadow(0 15px 25px rgba(255, 255, 255, 0.08)); /* Leve brilho no modo escuro */
-        }
-
-        .intro-logo h1 { font-size: 28px; font-weight: 800; margin: 0; letter-spacing: 1px; color: var(--text-light); }
-        body.dark-mode .intro-logo h1 { color: var(--text-dark); }
         
         @keyframes floatAndPulse { 
-            0%, 100% { transform: translateY(0) scale(1); } 
-            50% { transform: translateY(-12px) scale(1.05); } /* Sobe 12px e cresce 5% */
+            0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 15px 35px rgba(0, 198, 255, 0.2)); } 
+            50% { transform: translateY(-12px) scale(1.05); filter: drop-shadow(0 25px 45px rgba(0, 198, 255, 0.6)); } 
         }
 
-        /* Efeito de zoom cinemático na aterragem */
-        #capture-wrapper { 
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; 
-            transform: scale(1.15); transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1); will-change: transform;
+        /* Animação Letra a Letra */
+        .staggered-text {
+            display: flex; margin: 0; font-size: 32px; font-weight: 800;
+            letter-spacing: 2px; color: #ffffff;
         }
+        
+        .staggered-text span {
+            opacity: 0;
+            transform: translateY(30px) scale(0.8);
+            animation: letterPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            text-shadow: 0 0 15px rgba(0, 168, 255, 0); /* Começa sem brilho */
+        }
+        
+        @keyframes letterPop {
+            to { opacity: 1; transform: translateY(0) scale(1); text-shadow: 0 0 20px rgba(0, 168, 255, 0.8); }
+        }
+
+        /* Efeito de aterragem do mapa */
+        #capture-wrapper { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; transform: scale(1.15); transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1); will-change: transform; }
         #map { height: 100%; width: 100%; }
         
         .motion-ui { opacity: 0; transform: translateY(20px); transition: opacity 0.8s cubic-bezier(0.32, 0.72, 0, 1), transform 0.8s cubic-bezier(0.32, 0.72, 0, 1), left 0.4s ease, max-width 0.4s ease; }
 
+        /* Estados Pós-Carregamento */
         body.app-loaded #intro-overlay { opacity: 0; transform: scale(1.1); pointer-events: none; visibility: hidden; }
         body.app-loaded #capture-wrapper { transform: scale(1); }
         body.app-loaded .motion-ui { opacity: 1; transform: translateY(0); }
@@ -77,6 +116,7 @@
         #btnLayersToggle.motion-ui { transition-delay: 0.4s; }
         #bottom-panel.motion-ui { transition-delay: 0.5s; }
         body.app-loaded.animation-done .motion-ui { transition-delay: 0s; }
+
 
         /* === ESTILOS GERAIS === */
         .glass-panel { background: var(--bg-light); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); }
@@ -224,12 +264,30 @@
         }
     </script>
 
-    <!-- TELA DE INTRODUÇÃO COM A LOGO DA ALBATROID -->
+    <!-- TELA DE INTRODUÇÃO COM ANIMAÇÃO FLUIDA E CASCATA -->
     <div id="intro-overlay">
-        <div class="intro-logo">
-            <!-- A imagem substituiu o ícone do radar antigo -->
+        <!-- Fundo de Ondas Azul Tecnológico -->
+        <div class="tech-wave-container">
+            <div class="wave-blob"></div>
+            <div class="wave-blob"></div>
+            <div class="wave-blob"></div>
+        </div>
+        
+        <!-- Conteúdo Frontal -->
+        <div class="intro-content">
             <img src="https://i.postimg.cc/15wtZd0L/ALBATROID-LOGO-2.png" alt="Albatroid Logo" class="custom-logo">
-            <h1>BingoApp</h1>
+            
+            <!-- Letras animadas separadamente -->
+            <h1 class="staggered-text">
+                <span style="animation-delay: 0.10s">B</span>
+                <span style="animation-delay: 0.15s">i</span>
+                <span style="animation-delay: 0.20s">n</span>
+                <span style="animation-delay: 0.25s">g</span>
+                <span style="animation-delay: 0.30s">o</span>
+                <span style="animation-delay: 0.35s">A</span>
+                <span style="animation-delay: 0.40s">p</span>
+                <span style="animation-delay: 0.45s">p</span>
+            </h1>
         </div>
     </div>
 
@@ -364,12 +422,12 @@
 <script>
     lucide.createIcons();
 
-    // === GESTÃO DA ANIMAÇÃO DE CARREGAMENTO ===
+    // === GESTÃO DA ANIMAÇÃO DE CARREGAMENTO COM TEMPO EXTRA (2.5s) ===
     window.addEventListener('load', () => {
         setTimeout(() => {
             document.body.classList.add('app-loaded');
             setTimeout(() => { document.body.classList.add('animation-done'); }, 1000); 
-        }, 1200);
+        }, 2500); // Mantém as ondas e as letras na tela por 2.5 segundos
     });
 
     let totalDistanceMeters = 0;
