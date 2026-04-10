@@ -32,7 +32,9 @@
             transition: color 0.4s ease;
         }
 
-        #map { height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; z-index: 1; }
+        /* Container de Captura envolve o Mapa e o Selo D'água para a foto perfeita */
+        #capture-wrapper { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
+        #map { height: 100%; width: 100%; }
         
         .glass-panel {
             background: var(--bg-light);
@@ -43,30 +45,42 @@
             transition: background 0.4s ease, border-color 0.4s ease, transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.4s ease, left 0.4s ease, max-width 0.4s ease;
         }
 
-        /* === HEADER (Ilha Dinâmica) === */
+        /* === SELO DE EXPORTAÇÃO (Watermark) === */
+        #export-watermark {
+            display: none; /* Oculto até a hora de bater a foto */
+            position: absolute; bottom: 30px; right: 30px; z-index: 100;
+            flex-direction: column; gap: 8px; padding: 20px; border-radius: 20px;
+            min-width: 180px; box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+        .wm-title { font-weight: 800; font-size: 16px; text-align: center; margin-bottom: 5px; letter-spacing: 0.5px;}
+        .wm-stat { display: flex; justify-content: space-between; font-size: 14px; gap: 15px; }
+        .wm-stat span:last-child { font-weight: 700; font-variant-numeric: tabular-nums; }
+        .wm-divider { height: 1px; background: rgba(128,128,128,0.3); margin: 8px 0; border: none; }
+        .wm-legend { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; }
+        .wm-legend-item { display: flex; align-items: center; gap: 8px; }
+        .dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0;}
+
+        /* === HEADER === */
         #header-status {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             z-index: 1000; padding: 8px 20px; border-radius: 30px;
             display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500;
             max-width: 50vw; 
         }
-        
         #status-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity 0.3s, width 0.3s; }
-
         .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ffcc00; transition: background 0.3s; flex-shrink: 0;}
         .status-dot.connected { background: var(--success); }
         .status-dot.disconnected { background: var(--danger); }
-
         #header-status.shifted { left: 80px; transform: translateX(0); max-width: 35vw; }
 
         @media (max-width: 500px) {
             #header-status.shifted #status-text { display: none; }
             #header-status.shifted { padding: 8px 12px; }
+            #export-watermark { bottom: 20px; right: 20px; padding: 15px; min-width: 150px; } /* Ajuste mobile na foto */
         }
 
         /* === BOTÕES FLUTUANTES === */
         .float-btn-group { position: absolute; top: 20px; left: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
-        
         .float-btn {
             width: 44px; height: 44px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
             border: none; cursor: pointer; color: var(--text-light);
@@ -76,11 +90,10 @@
         }
         .float-btn:active { transform: scale(0.92); }
 
-        /* Botão de Camadas no canto superior direito */
         #btnLayersToggle { position: absolute; top: 20px; right: 20px; z-index: 1000; }
         #btnLayersToggle.active { background: var(--accent); color: white; }
 
-        /* === PAINEL DE CAMADAS iOS (Customizado) === */
+        /* === PAINEL DE CAMADAS iOS === */
         #customLayersPanel {
             position: absolute; top: 75px; right: 20px; z-index: 1000;
             padding: 20px; border-radius: 24px; min-width: 220px;
@@ -88,33 +101,18 @@
             transform: scale(0.9) translateY(-10px); opacity: 0; pointer-events: none;
         }
         #customLayersPanel.active { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
-
         .layer-section { margin-bottom: 20px; }
         .layer-section:last-child { margin-bottom: 0; }
         .layer-section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; margin-bottom: 12px; font-weight: 600; text-align: left; }
-        
         .layer-row { display: flex; gap: 15px; justify-content: flex-start; flex-wrap: wrap; }
-        
         .layer-item { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 60px; }
         .layer-item span { font-size: 11px; font-weight: 500; text-align: center; line-height: 1.1; }
-        
         .layer-round-btn {
-            width: 54px; height: 54px; border-radius: 50%; border: none;
-            display: flex; justify-content: center; align-items: center; cursor: pointer;
-            background: rgba(0, 0, 0, 0.06); color: var(--text-light);
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
+            width: 54px; height: 54px; border-radius: 50%; border: none; display: flex; justify-content: center; align-items: center; cursor: pointer;
+            background: rgba(0, 0, 0, 0.06); color: var(--text-light); transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
         }
-        
-        /* Estado Aceso (Ativo) */
-        .layer-round-btn.active {
-            background: var(--accent); color: white;
-            box-shadow: 0 8px 20px rgba(0, 122, 255, 0.35);
-            transform: scale(1.05);
-        }
-        
+        .layer-round-btn.active { background: var(--accent); color: white; box-shadow: 0 8px 20px rgba(0, 122, 255, 0.35); transform: scale(1.05); }
         .layer-round-btn:active { transform: scale(0.92); }
-
         .layer-divider { border: none; border-top: 1px solid rgba(0,0,0,0.1); margin: 15px 0; }
 
         /* === PAINEL INFERIOR === */
@@ -126,25 +124,40 @@
         }
         #bottom-panel.hidden-panel { transform: translate(-50%, 150%); opacity: 0; pointer-events: none; }
 
-        .value-display { text-align: center; display: flex; flex-direction: column; align-items: center; }
+        #btnStatsToggle {
+            position: absolute; top: 15px; left: 15px; width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;
+            background: rgba(0,0,0,0.05); color: var(--text-light); display: flex; justify-content: center; align-items: center;
+            transition: background 0.2s, transform 0.2s; z-index: 2;
+        }
+        #btnStatsToggle:active { transform: scale(0.9); }
+        #btnStatsToggle.active { background: var(--accent); color: white; }
+
+        #stats-panel {
+            display: flex; flex-direction: column; gap: 10px; overflow: hidden; max-height: 0; opacity: 0;
+            transition: max-height 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s ease, margin 0.3s ease;
+        }
+        #stats-panel.active { max-height: 150px; opacity: 1; margin-top: 10px; margin-bottom: 5px; }
+        
+        .stat-row { display: flex; align-items: center; justify-content: space-between; font-size: 14px; padding: 0 10px; }
+        .stat-label { display: flex; align-items: center; gap: 8px; opacity: 0.7; font-weight: 500; }
+        .stat-value { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+        .value-display { text-align: center; display: flex; flex-direction: column; align-items: center; margin-top: 5px; }
         .value-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; }
         #valor-sensor { font-size: 42px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; margin-top: 5px;}
 
         .primary-actions { display: flex; gap: 12px; }
         .btn-action {
             flex: 1; border: none; padding: 14px; border-radius: 16px;
-            font-size: 16px; font-weight: 600; cursor: pointer;
-            display: flex; justify-content: center; align-items: center; gap: 8px;
+            font-size: 16px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;
             transition: all 0.2s; color: white;
         }
         .btn-action:active { transform: scale(0.96); }
-        
         #btnConnect { background: var(--accent); }
         #btnCenter { background: rgba(0,0,0,0.05); color: var(--text-light); flex: 0 0 54px; padding: 0; }
         
         .legenda { display: flex; justify-content: space-between; font-size: 11px; font-weight: 500; padding: 10px 15px; background: rgba(0,0,0,0.03); border-radius: 12px; }
         .legenda-item { display: flex; align-items: center; gap: 6px; }
-        .dot { height: 8px; width: 8px; border-radius: 50%; }
 
         /* === BOTTOM SHEET === */
         #settingsSheet {
@@ -154,18 +167,14 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         #settingsSheet.active { transform: translateY(0); }
-        
         .sheet-handle { width: 40px; height: 5px; background: rgba(0,0,0,0.2); border-radius: 10px; margin: 0 auto 20px; }
-        
         .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
         .setting-row:last-child { border-bottom: none; }
         .setting-info { display: flex; flex-direction: column; gap: 4px; }
         .setting-title { font-size: 16px; font-weight: 500; }
         .setting-desc { font-size: 12px; opacity: 0.6; }
-
         .toggle-switch {
-            position: relative; width: 50px; height: 30px; appearance: none;
-            background: #e5e5ea; border-radius: 30px; outline: none; cursor: pointer; transition: background 0.3s;
+            position: relative; width: 50px; height: 30px; appearance: none; background: #e5e5ea; border-radius: 30px; outline: none; cursor: pointer; transition: background 0.3s;
         }
         .toggle-switch::after {
             content: ''; position: absolute; top: 2px; left: 2px; width: 26px; height: 26px; background: white; border-radius: 50%;
@@ -173,23 +182,21 @@
         }
         .toggle-switch:checked { background: var(--success); }
         .toggle-switch:checked::after { transform: translateX(20px); }
-
         input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; background: rgba(0,0,0,0.1); border-radius: 5px; outline: none; margin-top: 10px; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); cursor: pointer; }
-
         #btnShutdown { width: 100%; background: rgba(255, 59, 48, 0.1); color: var(--danger); border: none; padding: 15px; border-radius: 16px; font-weight: 600; font-size: 16px; margin-top: 20px; cursor: pointer; display: flex; justify-content: center; gap: 8px; }
 
         #backdrop { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1500; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
         #backdrop.active { opacity: 1; pointer-events: auto; }
 
-        /* Oculta os controlos nativos do Leaflet */
         .leaflet-control-zoom, .leaflet-control-attribution { display: none; } 
 
         /* === MODO ESCURO === */
         body.dark-mode { background: #000; color: var(--text-dark); }
         body.dark-mode .glass-panel { background: var(--bg-dark); border-color: rgba(255,255,255,0.05); }
         body.dark-mode .float-btn { color: var(--text-dark); background: var(--bg-dark); }
-        body.dark-mode #btnCenter { background: rgba(255,255,255,0.1); color: var(--text-dark); }
+        body.dark-mode #btnCenter, body.dark-mode #btnStatsToggle { background: rgba(255,255,255,0.1); color: var(--text-dark); }
+        body.dark-mode #btnStatsToggle.active { background: var(--accent); color: white; }
         body.dark-mode .sheet-handle { background: rgba(255,255,255,0.2); }
         body.dark-mode .setting-row { border-bottom-color: rgba(255,255,255,0.05); }
         body.dark-mode .legenda { background: rgba(255,255,255,0.05); }
@@ -199,21 +206,35 @@
         body.dark-mode .layer-round-btn.active { background: var(--accent); color: white; }
         body.dark-mode .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
 
-        #export-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.7); z-index: 9999; display: none;
-            flex-direction: column; justify-content: center; align-items: center; color: white;
-        }
+        #export-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
     </style>
 </head>
 <body>
 
-    <div id="map"></div>
-    <div id="backdrop"></div>
+    <!-- Wrapper para captura de ecrã (inclui mapa + selo) -->
+    <div id="capture-wrapper">
+        <div id="map"></div>
+        
+        <!-- SELO DE DADOS (Invisível no uso normal, revelado apenas na foto) -->
+        <div id="export-watermark" class="glass-panel">
+            <div class="wm-title">Relatório BingoApp</div>
+            <hr class="wm-divider">
+            <div class="wm-stat"><span>⏱️ Tempo:</span> <span id="wm-time">00:00</span></div>
+            <div class="wm-stat"><span>👣 Dist:</span> <span id="wm-dist">0 m</span></div>
+            <div class="wm-stat"><span>📡 Leituras:</span> <span id="wm-reads">0</span></div>
+            <hr class="wm-divider" style="margin-top: 12px;">
+            <div class="wm-legend">
+                <div class="wm-legend-item"><span class="dot" style="background:#007aff;"></span> 0-200 (Baixo)</div>
+                <div class="wm-legend-item"><span class="dot" style="background:#ffcc00;"></span> 200-800 (Médio)</div>
+                <div class="wm-legend-item"><span class="dot" style="background:#ff3b30;"></span> >800 (Alto)</div>
+            </div>
+        </div>
+    </div>
 
+    <div id="backdrop"></div>
     <div id="export-overlay">
         <i data-lucide="camera" style="width: 48px; height: 48px; margin-bottom: 10px;" class="lucide-pulse"></i>
-        <h3 style="margin: 0; font-family: sans-serif;">Capturando Mapa...</h3>
+        <h3 style="margin: 0; font-family: sans-serif;">Processando Relatório...</h3>
     </div>
 
     <!-- UI Elements -->
@@ -222,116 +243,71 @@
         <span id="status-text">Procurando ESP32...</span>
     </div>
 
-    <!-- Botões da Esquerda -->
     <div class="float-btn-group ui-element">
-        <button id="btnSettings" class="float-btn" title="Configurações">
-            <i data-lucide="settings"></i>
-        </button>
-        <button id="btnExport" class="float-btn" title="Exportar PNG">
-            <i data-lucide="camera"></i>
-        </button>
+        <button id="btnSettings" class="float-btn" title="Configurações"><i data-lucide="settings"></i></button>
+        <button id="btnExport" class="float-btn" title="Exportar Relatório Visual"><i data-lucide="camera"></i></button>
     </div>
 
-    <!-- Botão de Camadas (Topo Direita) -->
-    <button id="btnLayersToggle" class="float-btn ui-element" title="Camadas">
-        <i data-lucide="layers"></i>
-    </button>
+    <button id="btnLayersToggle" class="float-btn ui-element" title="Camadas"><i data-lucide="layers"></i></button>
 
-    <!-- Painel Customizado de Camadas (iOS Control Center Style) -->
     <div id="customLayersPanel" class="glass-panel ui-element">
-        
         <div class="layer-section">
             <div class="layer-section-title">Mapa Base</div>
             <div class="layer-row">
-                <div class="layer-item">
-                    <!-- Data-mapa guarda o ID lógico da camada -->
-                    <button class="layer-round-btn base-map-btn active" data-mapa="ruas">
-                        <i data-lucide="map"></i>
-                    </button>
-                    <span>Ruas</span>
-                </div>
-                <div class="layer-item">
-                    <button class="layer-round-btn base-map-btn" data-mapa="escuro">
-                        <i data-lucide="moon"></i>
-                    </button>
-                    <span>Vazio</span>
-                </div>
+                <div class="layer-item"><button class="layer-round-btn base-map-btn active" data-mapa="ruas"><i data-lucide="map"></i></button><span>Ruas</span></div>
+                <div class="layer-item"><button class="layer-round-btn base-map-btn" data-mapa="escuro"><i data-lucide="moon"></i></button><span>Vazio</span></div>
             </div>
         </div>
-
         <hr class="layer-divider">
-
         <div class="layer-section">
             <div class="layer-section-title">Dados & Sobreposições</div>
             <div class="layer-row">
-                <div class="layer-item">
-                    <!-- Data-overlay guarda o ID lógico da camada de dados -->
-                    <button class="layer-round-btn overlay-btn active" data-overlay="calor">
-                        <i data-lucide="flame"></i>
-                    </button>
-                    <span>áreas</span>
-                </div>
-                <div class="layer-item">
-                    <button class="layer-round-btn overlay-btn active" data-overlay="rastro">
-                        <i data-lucide="route"></i>
-                    </button>
-                    <span>Rastro</span>
-                </div>
-                <div class="layer-item">
-                    <button class="layer-round-btn overlay-btn active" data-overlay="posicao">
-                        <i data-lucide="navigation"></i>
-                    </button>
-                    <span>Posição</span>
-                </div>
+                <div class="layer-item"><button class="layer-round-btn overlay-btn active" data-overlay="calor"><i data-lucide="flame"></i></button><span>Calor</span></div>
+                <div class="layer-item"><button class="layer-round-btn overlay-btn active" data-overlay="rastro"><i data-lucide="route"></i></button><span>Rastro</span></div>
+                <div class="layer-item"><button class="layer-round-btn overlay-btn active" data-overlay="posicao"><i data-lucide="navigation"></i></button><span>Posição</span></div>
             </div>
         </div>
     </div>
 
-    <!-- Bottom Sheet de Configurações -->
     <div id="settingsSheet" class="glass-panel ui-element">
         <div class="sheet-handle" id="closeSheet"></div>
         <div class="setting-row">
-            <div class="setting-info">
-                <span class="setting-title">Modo Escuro</span>
-                <span class="setting-desc">Inverte as cores do mapa e interface</span>
-            </div>
+            <div class="setting-info"><span class="setting-title">Modo Escuro</span><span class="setting-desc">Inverte as cores</span></div>
             <input type="checkbox" class="toggle-switch" id="darkModeToggle">
         </div>
         <div class="setting-row">
-            <div class="setting-info">
-                <span class="setting-title">Mostrar Painel Principal</span>
-                <span class="setting-desc">Sinal, botão bluetooth e legenda</span>
-            </div>
+            <div class="setting-info"><span class="setting-title">Mostrar Painel Principal</span><span class="setting-desc">Sinal e controlos</span></div>
             <input type="checkbox" class="toggle-switch" id="mainPanelToggle" checked>
         </div>
         <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 5px;">
-            <div class="setting-info" style="width: 100%;">
-                <span class="setting-title">Transparência da Interface</span>
-            </div>
+            <div class="setting-info" style="width: 100%;"><span class="setting-title">Transparência da Interface</span></div>
             <input type="range" id="opacitySlider" min="0.3" max="1" step="0.05" value="0.75">
         </div>
         <div class="setting-row">
-            <div class="setting-info">
-                <span class="setting-title">Painel de Testes</span>
-                <span class="setting-desc">Simular dados sem hardware</span>
-            </div>
+            <div class="setting-info"><span class="setting-title">Painel de Testes</span><span class="setting-desc">Simular hardware</span></div>
             <input type="checkbox" class="toggle-switch" id="testPanelToggle">
         </div>
         <div id="manualTestArea" style="display: none; margin-top: 15px; gap: 10px;">
             <input type="number" id="manualInput" placeholder="Valor (ex: 300)" style="flex:1; padding:12px; border-radius:12px; border:none; background:rgba(0,0,0,0.05); font-size:16px;">
             <button id="btnAddManual" style="padding:12px 20px; border-radius:12px; border:none; background:var(--success); color:white; font-weight:bold;">Testar</button>
         </div>
-        <button id="btnShutdown">
-            <i data-lucide="power"></i> Desligar Bingo
-        </button>
+        <button id="btnShutdown"><i data-lucide="power"></i> Desligar Bingo</button>
     </div>
 
-    <!-- Painel Inferior -->
     <div id="bottom-panel" class="glass-panel ui-element">
+        <button id="btnStatsToggle" title="Ver Estatísticas"><i data-lucide="bar-chart-2" style="width: 18px; height: 18px;"></i></button>
+
         <div class="value-display">
             <span class="value-label">Intensidade do Sinal</span>
             <span id="valor-sensor">--</span>
         </div>
+
+        <div id="stats-panel">
+            <div class="stat-row"><span class="stat-label"><i data-lucide="timer" style="width: 16px; height: 16px;"></i> Tempo:</span><span class="stat-value" id="stat-time">00:00</span></div>
+            <div class="stat-row"><span class="stat-label"><i data-lucide="footprints" style="width: 16px; height: 16px;"></i> Distância:</span><span class="stat-value" id="stat-dist">0 m</span></div>
+            <div class="stat-row"><span class="stat-label"><i data-lucide="activity" style="width: 16px; height: 16px;"></i> Leituras ESP32:</span><span class="stat-value" id="stat-reads">0</span></div>
+        </div>
+
         <div class="primary-actions">
             <button id="btnConnect" class="btn-action"><i data-lucide="bluetooth"></i> Conectar</button>
             <button id="btnCenter" class="btn-action" title="Centralizar Mapa"><i data-lucide="navigation"></i></button>
@@ -346,7 +322,40 @@
 <script>
     lucide.createIcons();
 
-    // --- CARREGAMENTO DE CONFIGURAÇÕES SALVAS ---
+    // --- VARIÁVEIS DE ESTATÍSTICAS ---
+    let totalDistanceMeters = 0;
+    let totalReadsESP32 = 0;
+    let sessionStartTime = null;
+    let timerInterval = null;
+
+    const statTimeEl = document.getElementById('stat-time');
+    const statDistEl = document.getElementById('stat-dist');
+    const statReadsEl = document.getElementById('stat-reads');
+    const btnStatsToggle = document.getElementById('btnStatsToggle');
+    const statsPanel = document.getElementById('stats-panel');
+
+    btnStatsToggle.addEventListener('click', () => {
+        btnStatsToggle.classList.toggle('active');
+        statsPanel.classList.toggle('active');
+    });
+
+    function updateTimer() {
+        if (!sessionStartTime) return;
+        const diffMs = new Date() - sessionStartTime;
+        const totalSeconds = Math.floor(diffMs / 1000);
+        const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+        const seconds = String(totalSeconds % 60).padStart(2, '0');
+        statTimeEl.innerText = `${minutes}:${seconds}`;
+    }
+
+    function startSessionTimerIfNeed() {
+        if (!sessionStartTime) {
+            sessionStartTime = new Date();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+    }
+
+    // --- CONFIGURAÇÕES SALVAS ---
     const darkModeToggle = document.getElementById('darkModeToggle');
     const mainPanelToggle = document.getElementById('mainPanelToggle');
     const opacitySlider = document.getElementById('opacitySlider');
@@ -371,9 +380,7 @@
             const showPanel = savedMainPanel === 'true';
             mainPanelToggle.checked = showPanel;
             bottomPanel.classList.toggle('hidden-panel', !showPanel);
-        } else {
-            mainPanelToggle.checked = true;
-        }
+        } else { mainPanelToggle.checked = true; }
 
         const savedOpacity = localStorage.getItem('bingoOpacity');
         if (savedOpacity !== null) {
@@ -389,125 +396,75 @@
     }
     loadSettings();
 
-    darkModeToggle.addEventListener('change', (e) => { 
-        document.body.classList.toggle('dark-mode', e.target.checked); 
-        localStorage.setItem('bingoDarkMode', e.target.checked);
-    });
+    darkModeToggle.addEventListener('change', (e) => { document.body.classList.toggle('dark-mode', e.target.checked); localStorage.setItem('bingoDarkMode', e.target.checked); });
+    mainPanelToggle.addEventListener('change', (e) => { bottomPanel.classList.toggle('hidden-panel', !e.target.checked); localStorage.setItem('bingoMainPanel', e.target.checked); });
+    opacitySlider.addEventListener('input', (e) => { document.documentElement.style.setProperty('--panel-alpha', e.target.value); localStorage.setItem('bingoOpacity', e.target.value); });
+    testPanelToggle.addEventListener('change', (e) => { manualTestArea.style.display = e.target.checked ? 'flex' : 'none'; localStorage.setItem('bingoTestPanel', e.target.checked); });
 
-    mainPanelToggle.addEventListener('change', (e) => {
-        bottomPanel.classList.toggle('hidden-panel', !e.target.checked);
-        localStorage.setItem('bingoMainPanel', e.target.checked);
-    });
-
-    opacitySlider.addEventListener('input', (e) => { 
-        document.documentElement.style.setProperty('--panel-alpha', e.target.value); 
-        localStorage.setItem('bingoOpacity', e.target.value);
-    });
-
-    testPanelToggle.addEventListener('change', (e) => { 
-        manualTestArea.style.display = e.target.checked ? 'flex' : 'none'; 
-        localStorage.setItem('bingoTestPanel', e.target.checked);
-    });
-
-    // --- MAPA E CAMADAS NATIVAS (Leaflet) ---
+    // --- LEAFLET ---
     const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-23.5505, -46.6333], 15);
     
-    // Dicionários para ligar os botões do nosso UI ao Leaflet
     const layerObjetos = {
-        mapasBase: {
-            'ruas': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { crossOrigin: true }),
-            'escuro': L.layerGroup() // Camada vazia
-        },
-        overlays: {
-            'calor': L.layerGroup(),
-            'rastro': L.layerGroup(),
-            'posicao': L.layerGroup()
-        }
+        mapasBase: { 'ruas': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { crossOrigin: true }), 'escuro': L.layerGroup() },
+        overlays: { 'calor': L.layerGroup(), 'rastro': L.layerGroup(), 'posicao': L.layerGroup() }
     };
 
-    // Adiciona Mapas Base
     layerObjetos.mapasBase['ruas'].addTo(map);
 
-    // Heatmap (Agrupado na layer calor)
     let ptsBlue = [], ptsYellow = [], ptsRed = [];
     let layerBlue = L.heatLayer(ptsBlue, { radius: 15, blur: 10, gradient: {0.2: 'cyan', 0.65: '#007aff', 1.0: 'navy'} });
     let layerYellow = L.heatLayer(ptsYellow, { radius: 15, blur: 10, gradient: {0.2: '#ffcc00', 0.65: '#ff9500', 1.0: '#ff3b30'} });
     let layerRed = L.heatLayer(ptsRed, { radius: 15, blur: 10, gradient: {0.2: '#ff3b30', 0.65: '#c51162', 1.0: '#8b0000'} });
     layerObjetos.overlays['calor'].addLayer(layerBlue).addLayer(layerYellow).addLayer(layerRed).addTo(map);
 
-    // Rastro
     let userPathCoords = []; 
     let userPathLine = L.polyline([], { color: '#af52de', weight: 5, opacity: 0.8, lineJoin: 'round' });
     layerObjetos.overlays['rastro'].addLayer(userPathLine).addTo(map);
 
-    // Posição
     let userCircle = null;
     layerObjetos.overlays['posicao'].addTo(map);
 
-    // --- LÓGICA DO NOVO PAINEL DE CAMADAS (Estilo iOS) ---
+    // --- PAINEL DE CAMADAS ---
     const btnLayersToggle = document.getElementById('btnLayersToggle');
     const customLayersPanel = document.getElementById('customLayersPanel');
     const headerStatusElement = document.getElementById('header-status');
 
-    // Abre/Fecha o Painel e aciona o deslocamento dinâmico
     btnLayersToggle.addEventListener('click', () => {
         const isOpening = !customLayersPanel.classList.contains('active');
         customLayersPanel.classList.toggle('active');
         btnLayersToggle.classList.toggle('active');
-        
-        // Mágica Reativa: Empurra a ilha do ESP32 se o painel abrir
-        if (isOpening) {
-            headerStatusElement.classList.add('shifted');
-        } else {
-            headerStatusElement.classList.remove('shifted');
-        }
+        if (isOpening) { headerStatusElement.classList.add('shifted'); } 
+        else { headerStatusElement.classList.remove('shifted'); }
     });
 
-    // Lógica dos Botões Redondos de Mapa Base (Botões de Rádio)
     document.querySelectorAll('.base-map-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const btnEl = e.currentTarget;
-            const mapType = btnEl.dataset.mapa;
-            
-            // Remove o visual ativo de todos os mapas base
+            const mapType = e.currentTarget.dataset.mapa;
             document.querySelectorAll('.base-map-btn').forEach(b => b.classList.remove('active'));
-            // Adiciona ao selecionado
-            btnEl.classList.add('active');
-
-            // Remove todas as camadas base do mapa real
+            e.currentTarget.classList.add('active');
             Object.values(layerObjetos.mapasBase).forEach(layer => map.removeLayer(layer));
-            // Adiciona a escolhida
             layerObjetos.mapasBase[mapType].addTo(map);
         });
     });
 
-    // Lógica dos Botões Redondos de Sobreposições/Dados (Checkboxes)
     document.querySelectorAll('.overlay-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const btnEl = e.currentTarget;
-            const overlayType = btnEl.dataset.overlay;
-            const layerReference = layerObjetos.overlays[overlayType];
-
-            // Acende ou Apaga a luzinha redonda (Toggle visual)
+            const layerReference = layerObjetos.overlays[btnEl.dataset.overlay];
             btnEl.classList.toggle('active');
-
-            // Adiciona ou remove do mapa real
-            if (btnEl.classList.contains('active')) {
-                map.addLayer(layerReference);
-            } else {
-                map.removeLayer(layerReference);
-            }
+            if (btnEl.classList.contains('active')) { map.addLayer(layerReference); } 
+            else { map.removeLayer(layerReference); }
         });
     });
 
-    // --- VARIÁVEIS DE MAPEAMENTO ---
+    // --- MAPEAMENTO E TESTE ---
     let currentLat = 0, currentLng = 0, bluetoothDevice = null, characteristic = null, isConnecting = false;
     let lastPointTime = 0;
     const POINT_INTERVAL = 400; 
     let pontosRegistrados = []; 
     const RAIO_MINIMO_METROS = 5;
 
-    // --- LÓGICA DE EXPORTAÇÃO ---
+    // --- EXPORTAÇÃO INTELIGENTE (FOTO COM RELATÓRIO) ---
     document.getElementById('btnExport').addEventListener('click', async () => {
         let bounds = null;
         if (userPathCoords.length > 0) bounds = L.polyline(userPathCoords).getBounds();
@@ -516,37 +473,49 @@
         const overlay = document.getElementById('export-overlay');
         overlay.style.display = 'flex';
 
-        // Esconde todos os elementos da UI marcados, incluindo o novo painel
+        // 1. Esconde a UI Interativa
         const uiElements = document.querySelectorAll('.ui-element');
         uiElements.forEach(el => el.style.opacity = '0');
+
+        // 2. Prepara o Selo (Watermark) com os dados reais
+        const watermark = document.getElementById('export-watermark');
+        document.getElementById('wm-time').innerText = statTimeEl.innerText;
+        document.getElementById('wm-dist').innerText = statDistEl.innerText;
+        document.getElementById('wm-reads').innerText = statReadsEl.innerText;
+        
+        // 3. Mostra o Selo (ele está dentro da div #capture-wrapper que será exportada)
+        watermark.style.display = 'flex';
 
         const centerBefore = map.getCenter();
         const zoomBefore = map.getZoom();
         
-        if (bounds) map.fitBounds(bounds, { padding: [50, 50], animate: false });
+        // Foca no caminho com uma margem de segurança para o selo não ficar por cima do trajeto
+        if (bounds) map.fitBounds(bounds, { paddingBottomRight: [200, 200], paddingTopLeft: [50, 50], animate: false });
 
         setTimeout(async () => {
             try {
-                const mapNode = document.getElementById('map');
-                const dataUrl = await domtoimage.toPng(mapNode, {
-                    width: mapNode.clientWidth, height: mapNode.clientHeight,
+                // Captura o wrapper que contém o mapa E o selo d'água
+                const captureNode = document.getElementById('capture-wrapper');
+                const dataUrl = await domtoimage.toPng(captureNode, {
+                    width: captureNode.clientWidth, height: captureNode.clientHeight,
                     style: { transform: 'scale(1)', transformOrigin: 'top left' }
                 });
 
                 const link = document.createElement('a');
-                link.download = `bingo-mapa-${new Date().getTime()}.png`;
+                link.download = `Relatorio-BingoApp-${new Date().getTime()}.png`;
                 link.href = dataUrl;
                 link.click();
             } catch (error) {
                 console.error("Erro ao gerar imagem: ", error);
                 alert("Não foi possível gerar a imagem. Tente alterar o mapa base.");
             } finally {
-                // Restaura visual
+                // Restaura o layout normal
                 uiElements.forEach(el => el.style.opacity = '');
+                watermark.style.display = 'none'; // Esconde o selo d'água novamente
                 if (bounds) map.setView(centerBefore, zoomBefore, { animate: false });
                 overlay.style.display = 'none';
             }
-        }, 1000);
+        }, 1200); // 1.2s para garantir o carregamento do mapa na nova posição
     });
 
     // --- LÓGICA DO MENU DE CONFIGURAÇÕES ---
@@ -558,7 +527,6 @@
     function toggleSheet() { 
         settingsSheet.classList.toggle('active'); 
         backdrop.classList.toggle('active'); 
-        // Se as camadas estiverem abertas, vamos fechá-las para focar nas configs
         if(customLayersPanel.classList.contains('active')){
             customLayersPanel.classList.remove('active');
             btnLayersToggle.classList.remove('active');
@@ -585,6 +553,8 @@
         let valor = parseFloat(valorRaw);
         if (isNaN(valor)) return;
         
+        startSessionTimerIfNeed();
+
         const valorDisplay = document.getElementById('valor-sensor');
         valorDisplay.innerText = valor;
         valorDisplay.style.transform = 'scale(1.1)';
@@ -600,7 +570,10 @@
         const localJaMapeado = pontosRegistrados.some(pontoSalvo => novoPontoLatLng.distanceTo(pontoSalvo) < RAIO_MINIMO_METROS);
 
         if (localJaMapeado) return;
+        
         pontosRegistrados.push(novoPontoLatLng);
+        totalReadsESP32++; 
+        statReadsEl.innerText = totalReadsESP32;
 
         let intensidade = 0.6;
         if (valor < 200) { ptsBlue.push([currentLat, currentLng, intensidade]); layerBlue.setLatLngs(ptsBlue); }
@@ -617,10 +590,11 @@
             currentLng = position.coords.longitude;
             const newLatLng = L.latLng(currentLat, currentLng);
 
+            startSessionTimerIfNeed();
+
             if (userCircle) { userCircle.setLatLng(newLatLng); } 
             else {
                 userCircle = L.circleMarker(newLatLng, { radius: 8, color: 'white', weight: 3, fillColor: '#007aff', fillOpacity: 1 });
-                // Adiciona ao grupo gerenciado pelo botão redondo "Posição"
                 layerObjetos.overlays['posicao'].addLayer(userCircle);
                 map.setView(newLatLng, 17);
             }
@@ -630,9 +604,15 @@
                 userPathLine.addLatLng(newLatLng);
             } else {
                 const lastLatLng = userPathCoords[userPathCoords.length - 1];
-                if (newLatLng.distanceTo(lastLatLng) > 2) {
+                const distanceToLastPoint = newLatLng.distanceTo(lastLatLng);
+                
+                if (distanceToLastPoint > 2) {
                     userPathCoords.push(newLatLng);
                     userPathLine.addLatLng(newLatLng);
+                    
+                    totalDistanceMeters += distanceToLastPoint;
+                    if (totalDistanceMeters > 1000) { statDistEl.innerText = (totalDistanceMeters / 1000).toFixed(2) + " km"; } 
+                    else { statDistEl.innerText = Math.floor(totalDistanceMeters) + " m"; }
                 }
             }
         }, null, { enableHighAccuracy: true });
