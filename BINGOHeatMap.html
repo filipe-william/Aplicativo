@@ -27,14 +27,59 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; background: #e5e5ea; color: var(--text-light); transition: color 0.4s ease; }
 
-        #capture-wrapper { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
+        /* === ANIMAÇÕES DE MOTION DESIGN (INTRODUÇÃO) === */
+        #intro-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(229, 229, 234, 0.95); 
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            z-index: 100000; display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.8s cubic-bezier(0.32, 0.72, 0, 1), transform 0.8s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        body.dark-mode #intro-overlay { background: rgba(0, 0, 0, 0.95); }
+        
+        .intro-logo { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        
+        /* Estilo e Animação da Logo da Equipe */
+        .custom-logo {
+            width: 160px; /* Tamanho da logo */
+            height: auto;
+            animation: floatAndPulse 3s ease-in-out infinite;
+            filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.2));
+            will-change: transform;
+        }
+        body.dark-mode .custom-logo {
+            filter: drop-shadow(0 15px 25px rgba(255, 255, 255, 0.08)); /* Leve brilho no modo escuro */
+        }
+
+        .intro-logo h1 { font-size: 28px; font-weight: 800; margin: 0; letter-spacing: 1px; color: var(--text-light); }
+        body.dark-mode .intro-logo h1 { color: var(--text-dark); }
+        
+        @keyframes floatAndPulse { 
+            0%, 100% { transform: translateY(0) scale(1); } 
+            50% { transform: translateY(-12px) scale(1.05); } /* Sobe 12px e cresce 5% */
+        }
+
+        /* Efeito de zoom cinemático na aterragem */
+        #capture-wrapper { 
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; 
+            transform: scale(1.15); transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1); will-change: transform;
+        }
         #map { height: 100%; width: 100%; }
         
-        .glass-panel {
-            background: var(--bg-light); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            transition: background 0.4s ease, border-color 0.4s ease, transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.4s ease, left 0.4s ease, max-width 0.4s ease;
-        }
+        .motion-ui { opacity: 0; transform: translateY(20px); transition: opacity 0.8s cubic-bezier(0.32, 0.72, 0, 1), transform 0.8s cubic-bezier(0.32, 0.72, 0, 1), left 0.4s ease, max-width 0.4s ease; }
+
+        body.app-loaded #intro-overlay { opacity: 0; transform: scale(1.1); pointer-events: none; visibility: hidden; }
+        body.app-loaded #capture-wrapper { transform: scale(1); }
+        body.app-loaded .motion-ui { opacity: 1; transform: translateY(0); }
+
+        #header-status.motion-ui { transition-delay: 0.2s; }
+        .float-btn-group.motion-ui { transition-delay: 0.3s; }
+        #btnLayersToggle.motion-ui { transition-delay: 0.4s; }
+        #bottom-panel.motion-ui { transition-delay: 0.5s; }
+        body.app-loaded.animation-done .motion-ui { transition-delay: 0s; }
+
+        /* === ESTILOS GERAIS === */
+        .glass-panel { background: var(--bg-light); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); }
 
         /* === SELO DE EXPORTAÇÃO === */
         #export-watermark {
@@ -77,7 +122,7 @@
         #btnLayersToggle.active { background: var(--accent); color: white; }
 
         /* === PAINEL DE CAMADAS === */
-        #customLayersPanel { position: absolute; top: 75px; right: 20px; z-index: 1000; padding: 20px; border-radius: 24px; min-width: 220px; transform-origin: top right; transform: scale(0.9) translateY(-10px); opacity: 0; pointer-events: none; }
+        #customLayersPanel { position: absolute; top: 75px; right: 20px; z-index: 1000; padding: 20px; border-radius: 24px; min-width: 220px; transform-origin: top right; transform: scale(0.9) translateY(-10px); opacity: 0; pointer-events: none; transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.4s ease;}
         #customLayersPanel.active { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
         .layer-section { margin-bottom: 20px; }
         .layer-section:last-child { margin-bottom: 0; }
@@ -91,8 +136,11 @@
         .layer-divider { border: none; border-top: 1px solid rgba(0,0,0,0.1); margin: 15px 0; }
 
         /* === PAINEL INFERIOR === */
-        #bottom-panel { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; width: 92%; max-width: 400px; border-radius: var(--border-radius); padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        #bottom-panel.hidden-panel { transform: translate(-50%, 150%); opacity: 0; pointer-events: none; }
+        #bottom-panel { position: absolute; bottom: 20px; left: 50%; z-index: 1000; width: 92%; max-width: 400px; border-radius: var(--border-radius); padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        #bottom-panel.hidden-panel.motion-ui { transform: translate(-50%, 150%); opacity: 0; pointer-events: none; }
+        #bottom-panel.motion-ui { transform: translate(-50%, 20px); }
+        body.app-loaded #bottom-panel.motion-ui { transform: translate(-50%, 0); opacity: 1; }
+        body.app-loaded #bottom-panel.hidden-panel.motion-ui { transform: translate(-50%, 150%); opacity: 0;}
 
         #btnStatsToggle, #btnTableToggle { position: absolute; top: 15px; width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer; background: rgba(0,0,0,0.05); color: var(--text-light); display: flex; justify-content: center; align-items: center; transition: background 0.2s, transform 0.2s; z-index: 2; }
         #btnStatsToggle { left: 15px; } #btnTableToggle { right: 15px; }
@@ -133,7 +181,6 @@
         
         .btn-large-action { width: 100%; border: none; padding: 15px; border-radius: 16px; font-weight: 600; font-size: 16px; margin-top: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; flex-shrink: 0; transition: transform 0.1s;}
         .btn-large-action:active { transform: scale(0.98); }
-        
         .btn-danger { background: rgba(255, 59, 48, 0.1); color: var(--danger); }
         .btn-primary { background: var(--accent); color: white; }
 
@@ -170,9 +217,24 @@
 </head>
 <body>
 
+    <script>
+        const savedDarkMode = localStorage.getItem('bingoDarkMode');
+        if (savedDarkMode === 'true' || (savedDarkMode === null && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+
+    <!-- TELA DE INTRODUÇÃO COM A LOGO DA ALBATROID -->
+    <div id="intro-overlay">
+        <div class="intro-logo">
+            <!-- A imagem substituiu o ícone do radar antigo -->
+            <img src="https://i.postimg.cc/15wtZd0L/ALBATROID-LOGO-2.png" alt="Albatroid Logo" class="custom-logo">
+            <h1>BingoApp</h1>
+        </div>
+    </div>
+
     <div id="capture-wrapper">
         <div id="map"></div>
-        
         <div id="export-watermark">
             <div class="wm-title">Relatório BingoApp</div>
             <hr class="wm-divider">
@@ -194,17 +256,17 @@
         <h3 style="margin: 0; font-family: sans-serif;">Exportando Dados...</h3>
     </div>
 
-    <div id="header-status" class="glass-panel ui-element">
+    <div id="header-status" class="glass-panel ui-element motion-ui">
         <div id="status-indicator" class="status-dot"></div>
         <span id="status-text">Procurando ESP32...</span>
     </div>
 
-    <div class="float-btn-group ui-element">
+    <div class="float-btn-group ui-element motion-ui">
         <button id="btnSettings" class="float-btn" title="Configurações"><i data-lucide="settings"></i></button>
         <button id="btnExport" class="float-btn" title="Exportar Relatório Visual"><i data-lucide="camera"></i></button>
     </div>
 
-    <button id="btnLayersToggle" class="float-btn ui-element" title="Camadas"><i data-lucide="layers"></i></button>
+    <button id="btnLayersToggle" class="float-btn ui-element motion-ui" title="Camadas"><i data-lucide="layers"></i></button>
 
     <div id="customLayersPanel" class="glass-panel ui-element">
         <div class="layer-section">
@@ -225,7 +287,6 @@
         </div>
     </div>
 
-    <!-- BOTTOM SHEET: Configurações -->
     <div id="settingsSheet" class="glass-panel ui-element bottom-sheet">
         <div class="sheet-handle" id="closeSettingsSheet"></div>
         <div style="overflow-y: auto; padding-bottom: 20px;" class="materials-container"> 
@@ -252,19 +313,11 @@
             
             <hr class="layer-divider">
             <h3 style="font-size: 14px; opacity: 0.6; text-transform: uppercase; margin-bottom: 5px;">Ações da Exploração</h3>
-            
-            <!-- NOVO: Botão de Salvar Tudo -->
-            <button id="btnSaveExploration" class="btn-large-action btn-primary">
-                <i data-lucide="save"></i> Salvar Dados Completos (TXT + Mapa)
-            </button>
-            
-            <button id="btnShutdown" class="btn-large-action btn-danger">
-                <i data-lucide="power"></i> Desligar Bingo
-            </button>
+            <button id="btnSaveExploration" class="btn-large-action btn-primary"><i data-lucide="save"></i> Salvar Dados Completos (TXT + Mapa)</button>
+            <button id="btnShutdown" class="btn-large-action btn-danger"><i data-lucide="power"></i> Desligar Bingo</button>
         </div>
     </div>
 
-    <!-- BOTTOM SHEET: Tabela de Materiais -->
     <div id="materialsSheet" class="glass-panel ui-element bottom-sheet">
         <div class="sheet-handle" id="closeMaterialsSheet"></div>
         <h3 style="margin: 0 0 15px 0; text-align: center; font-size: 18px;">Guia de Magnetismo</h3>
@@ -282,7 +335,7 @@
         </div>
     </div>
 
-    <div id="bottom-panel" class="glass-panel ui-element">
+    <div id="bottom-panel" class="glass-panel ui-element motion-ui">
         <button id="btnStatsToggle" title="Ver Estatísticas"><i data-lucide="bar-chart-2" style="width: 18px; height: 18px;"></i></button>
         <button id="btnTableToggle" title="Tabela de Materiais"><i data-lucide="book-open" style="width: 18px; height: 18px;"></i></button>
 
@@ -311,12 +364,19 @@
 <script>
     lucide.createIcons();
 
-    // --- VARIÁVEIS DE ESTATÍSTICAS E LOGGING ---
+    // === GESTÃO DA ANIMAÇÃO DE CARREGAMENTO ===
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            document.body.classList.add('app-loaded');
+            setTimeout(() => { document.body.classList.add('animation-done'); }, 1000); 
+        }, 1200);
+    });
+
     let totalDistanceMeters = 0;
     let totalReadsESP32 = 0;
     let sessionStartTime = null;
     let timerInterval = null;
-    let sessionLog = []; // Onde guardamos a tabela de dados brutos
+    let sessionLog = []; 
 
     const statTimeEl = document.getElementById('stat-time');
     const statDistEl = document.getElementById('stat-dist');
@@ -345,7 +405,6 @@
         }
     }
 
-    // --- CONFIGURAÇÕES SALVAS ---
     const darkModeToggle = document.getElementById('darkModeToggle');
     const mainPanelToggle = document.getElementById('mainPanelToggle');
     const opacitySlider = document.getElementById('opacitySlider');
@@ -355,15 +414,8 @@
 
     function loadSettings() {
         const savedDarkMode = localStorage.getItem('bingoDarkMode');
-        if (savedDarkMode !== null) {
-            const isDark = savedDarkMode === 'true';
-            document.body.classList.toggle('dark-mode', isDark);
-            darkModeToggle.checked = isDark;
-        } else {
-            const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)").matches;
-            document.body.classList.toggle('dark-mode', prefersDarkScheme);
-            darkModeToggle.checked = prefersDarkScheme;
-        }
+        if (savedDarkMode !== null) { darkModeToggle.checked = savedDarkMode === 'true'; } 
+        else { darkModeToggle.checked = window.matchMedia("(prefers-color-scheme: dark)").matches; }
 
         const savedMainPanel = localStorage.getItem('bingoMainPanel');
         if (savedMainPanel !== null) {
@@ -391,7 +443,6 @@
     opacitySlider.addEventListener('input', (e) => { document.documentElement.style.setProperty('--panel-alpha', e.target.value); localStorage.setItem('bingoOpacity', e.target.value); });
     testPanelToggle.addEventListener('change', (e) => { manualTestArea.style.display = e.target.checked ? 'flex' : 'none'; localStorage.setItem('bingoTestPanel', e.target.checked); });
 
-    // --- LEAFLET ---
     const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-23.5505, -46.6333], 15);
     const layerObjetos = { mapasBase: { 'ruas': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { crossOrigin: true }), 'escuro': L.layerGroup() }, overlays: { 'calor': L.layerGroup(), 'rastro': L.layerGroup(), 'posicao': L.layerGroup() } };
     layerObjetos.mapasBase['ruas'].addTo(map);
@@ -409,7 +460,6 @@
     let userCircle = null;
     layerObjetos.overlays['posicao'].addTo(map);
 
-    // --- PAINEL DE CAMADAS ---
     const btnLayersToggle = document.getElementById('btnLayersToggle');
     const customLayersPanel = document.getElementById('customLayersPanel');
     const headerStatusElement = document.getElementById('header-status');
@@ -442,7 +492,6 @@
         });
     });
 
-    // --- MAPEAMENTO ---
     let currentLat = 0, currentLng = 0, bluetoothDevice = null, characteristic = null, isConnecting = false;
     let lastPointTime = 0;
     const POINT_INTERVAL = 400; 
@@ -490,19 +539,11 @@
             zona = "Alto (Vermelho)";
         }
 
-        // SALVAR NO LOG DE EXPORTAÇÃO
-        sessionLog.push({
-            time: new Date().toLocaleTimeString(),
-            lat: currentLat.toFixed(6),
-            lng: currentLng.toFixed(6),
-            value: valor,
-            zone: zona
-        });
+        sessionLog.push({ time: new Date().toLocaleTimeString(), lat: currentLat.toFixed(6), lng: currentLng.toFixed(6), value: valor, zone: zona });
     }
 
     document.getElementById('btnAddManual').addEventListener('click', () => { processarValor(document.getElementById('manualInput').value); });
 
-    // --- MOTOR DE EXPORTAÇÃO (FOTO + TXT) ---
     async function executarExportacao(incluirTexto = false) {
         let bounds = null;
         if (userPathCoords.length > 0) bounds = L.polyline(userPathCoords).getBounds();
@@ -530,8 +571,6 @@
         setTimeout(async () => {
             try {
                 const timestamp = new Date().getTime();
-                
-                // 1. Exporta a Imagem
                 const captureNode = document.getElementById('capture-wrapper');
                 const dataUrl = await domtoimage.toPng(captureNode, {
                     width: captureNode.clientWidth, height: captureNode.clientHeight,
@@ -543,7 +582,6 @@
                 linkImg.href = dataUrl;
                 linkImg.click();
 
-                // 2. Exporta o Ficheiro TXT (se solicitado pelo botão das configurações)
                 if (incluirTexto) {
                     let texto = "=================================================\n";
                     texto += "        RELATÓRIO DE EXPLORAÇÃO - BINGOAPP       \n";
@@ -552,7 +590,6 @@
                     texto += `Tempo de Exploração: ${statTimeEl.innerText}\n`;
                     texto += `Distância Percorrida: ${statDistEl.innerText}\n`;
                     texto += `Total de Leituras Válidas: ${statReadsEl.innerText}\n\n`;
-                    
                     texto += "-------------------------------------------------\n";
                     texto += "DADOS CAPTURADOS:\n";
                     texto += "HORA      | LATITUDE    | LONGITUDE   | VALOR | ZONA\n";
@@ -561,9 +598,7 @@
                     if (sessionLog.length === 0) {
                         texto += "Nenhum dado de magnetismo registado nesta sessão.\n";
                     } else {
-                        sessionLog.forEach(log => {
-                            texto += `${log.time}  | ${log.lat}  | ${log.lng}  | ${log.value.toString().padStart(5, ' ')} | ${log.zone}\n`;
-                        });
+                        sessionLog.forEach(log => { texto += `${log.time}  | ${log.lat}  | ${log.lng}  | ${log.value.toString().padStart(5, ' ')} | ${log.zone}\n`; });
                     }
                     texto += "=================================================\n";
 
@@ -571,11 +606,8 @@
                     const linkTxt = document.createElement('a');
                     linkTxt.href = URL.createObjectURL(blob);
                     linkTxt.download = `Dados-BingoApp-${timestamp}.txt`;
-                    
-                    // Um pequeno atraso para o browser não bloquear o segundo download
                     setTimeout(() => linkTxt.click(), 500);
                 }
-
             } catch (error) {
                 console.error("Erro na exportação: ", error);
                 alert("Falha ao exportar. Tente alterar o mapa base.");
@@ -589,16 +621,9 @@
         }, 1200);
     }
 
-    // Botão apenas Foto (Câmara flutuante)
     document.getElementById('btnExport').addEventListener('click', () => executarExportacao(false));
-    
-    // Botão Completo (Configurações)
-    document.getElementById('btnSaveExploration').addEventListener('click', () => {
-        closeAllPanels(); // Fecha o menu primeiro
-        executarExportacao(true); // true = inclui o ficheiro .txt
-    });
+    document.getElementById('btnSaveExploration').addEventListener('click', () => { closeAllPanels(); executarExportacao(true); });
 
-    // --- GESTÃO DE BOTTOM SHEETS ---
     const btnSettings = document.getElementById('btnSettings');
     const settingsSheet = document.getElementById('settingsSheet');
     const btnTableToggle = document.getElementById('btnTableToggle');
