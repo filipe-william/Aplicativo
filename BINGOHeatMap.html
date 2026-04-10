@@ -371,7 +371,7 @@
             
             <hr class="layer-divider">
             <h3 style="font-size: 14px; opacity: 0.6; text-transform: uppercase; margin-bottom: 5px;">Ações da Exploração</h3>
-            <button id="btnSaveExploration" class="btn-large-action btn-primary"><i data-lucide="save"></i> Salvar Dados Completos (TXT + Mapa)</button>
+            <button id="btnSaveExploration" class="btn-large-action btn-primary"><i data-lucide="save"></i> Salvar Dados Completos (Mapa + TXT + JSON)</button>
             <button id="btnShutdown" class="btn-large-action btn-danger"><i data-lucide="power"></i> Desligar Bingo</button>
         </div>
     </div>
@@ -665,6 +665,31 @@
                     linkTxt.href = URL.createObjectURL(blob);
                     linkTxt.download = `Dados-BingoApp-${timestamp}.txt`;
                     setTimeout(() => linkTxt.click(), 500);
+
+                    // 3. Exporta o Arquivo JSON (Estrutura de dados bruta para recriar o mapa)
+                    const jsonExport = {
+                        versaoApp: "BingoApp Premium",
+                        dataCriacao: new Date().toISOString(),
+                        resumo: {
+                            tempo: statTimeEl.innerText,
+                            distancia: statDistEl.innerText,
+                            leituras: statReadsEl.innerText
+                        },
+                        rastreamento: userPathCoords.map(p => ({ lat: p.lat, lng: p.lng })),
+                        pontosLidos: sessionLog.map(p => ({
+                            hora: p.time,
+                            lat: parseFloat(p.lat),
+                            lng: parseFloat(p.lng),
+                            valor: p.value,
+                            zona: p.zone
+                        }))
+                    };
+
+                    const blobJson = new Blob([JSON.stringify(jsonExport, null, 2)], { type: 'application/json' });
+                    const linkJson = document.createElement('a');
+                    linkJson.href = URL.createObjectURL(blobJson);
+                    linkJso.n.download = `Backup-BingoApp-${timestamp}.json`;
+                    setTimeout(() => linkJson.click(), 1100); // 1.1s depois para o navegador permitir o terceiro download sem bloquear
                 }
             } catch (error) {
                 console.error("Erro na exportação: ", error);
