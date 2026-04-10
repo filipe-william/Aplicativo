@@ -32,7 +32,6 @@
             transition: color 0.4s ease;
         }
 
-        /* Container de Captura envolve o Mapa e o Selo D'água para a foto perfeita */
         #capture-wrapper { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
         #map { height: 100%; width: 100%; }
         
@@ -45,13 +44,21 @@
             transition: background 0.4s ease, border-color 0.4s ease, transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.4s ease, left 0.4s ease, max-width 0.4s ease;
         }
 
-        /* === SELO DE EXPORTAÇÃO (Watermark) === */
+        /* === SELO DE EXPORTAÇÃO (CORRIGIDO) === */
         #export-watermark {
-            display: none; /* Oculto até a hora de bater a foto */
-            position: absolute; bottom: 30px; right: 30px; z-index: 100;
-            flex-direction: column; gap: 8px; padding: 20px; border-radius: 20px;
-            min-width: 180px; box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            visibility: hidden; /* Mantém oculto mas presente no DOM */
+            opacity: 0;
+            position: absolute; bottom: 30px; right: 30px; 
+            z-index: 9999; /* Máxima prioridade para não ficar atrás do mapa */
+            display: flex; flex-direction: column; gap: 8px; padding: 20px; border-radius: 20px;
+            min-width: 180px; box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.98); /* Fundo sólido para garantir captura perfeita na foto */
+            color: #1c1c1e; /* Texto sempre escuro no selo */
+            transition: opacity 0.3s ease;
         }
+        
+        body.dark-mode #export-watermark { background: rgba(28, 28, 30, 0.98); color: #f2f2f7; }
+
         .wm-title { font-weight: 800; font-size: 16px; text-align: center; margin-bottom: 5px; letter-spacing: 0.5px;}
         .wm-stat { display: flex; justify-content: space-between; font-size: 14px; gap: 15px; }
         .wm-stat span:last-child { font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -64,8 +71,7 @@
         #header-status {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             z-index: 1000; padding: 8px 20px; border-radius: 30px;
-            display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500;
-            max-width: 50vw; 
+            display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; max-width: 50vw; 
         }
         #status-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity 0.3s, width 0.3s; }
         .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ffcc00; transition: background 0.3s; flex-shrink: 0;}
@@ -76,7 +82,7 @@
         @media (max-width: 500px) {
             #header-status.shifted #status-text { display: none; }
             #header-status.shifted { padding: 8px 12px; }
-            #export-watermark { bottom: 20px; right: 20px; padding: 15px; min-width: 150px; } /* Ajuste mobile na foto */
+            #export-watermark { bottom: 20px; right: 20px; padding: 15px; min-width: 150px; } 
         }
 
         /* === BOTÕES FLUTUANTES === */
@@ -89,16 +95,13 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.1s, background 0.3s, color 0.3s;
         }
         .float-btn:active { transform: scale(0.92); }
-
         #btnLayersToggle { position: absolute; top: 20px; right: 20px; z-index: 1000; }
         #btnLayersToggle.active { background: var(--accent); color: white; }
 
-        /* === PAINEL DE CAMADAS iOS === */
+        /* === PAINEL DE CAMADAS === */
         #customLayersPanel {
-            position: absolute; top: 75px; right: 20px; z-index: 1000;
-            padding: 20px; border-radius: 24px; min-width: 220px;
-            transform-origin: top right;
-            transform: scale(0.9) translateY(-10px); opacity: 0; pointer-events: none;
+            position: absolute; top: 75px; right: 20px; z-index: 1000; padding: 20px; border-radius: 24px; min-width: 220px;
+            transform-origin: top right; transform: scale(0.9) translateY(-10px); opacity: 0; pointer-events: none;
         }
         #customLayersPanel.active { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
         .layer-section { margin-bottom: 20px; }
@@ -118,8 +121,7 @@
         /* === PAINEL INFERIOR === */
         #bottom-panel {
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            z-index: 1000; width: 92%; max-width: 400px;
-            border-radius: var(--border-radius); padding: 20px;
+            z-index: 1000; width: 92%; max-width: 400px; border-radius: var(--border-radius); padding: 20px;
             display: flex; flex-direction: column; gap: 15px;
         }
         #bottom-panel.hidden-panel { transform: translate(-50%, 150%); opacity: 0; pointer-events: none; }
@@ -148,8 +150,7 @@
 
         .primary-actions { display: flex; gap: 12px; }
         .btn-action {
-            flex: 1; border: none; padding: 14px; border-radius: 16px;
-            font-size: 16px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;
+            flex: 1; border: none; padding: 14px; border-radius: 16px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;
             transition: all 0.2s; color: white;
         }
         .btn-action:active { transform: scale(0.96); }
@@ -159,12 +160,10 @@
         .legenda { display: flex; justify-content: space-between; font-size: 11px; font-weight: 500; padding: 10px 15px; background: rgba(0,0,0,0.03); border-radius: 12px; }
         .legenda-item { display: flex; align-items: center; gap: 6px; }
 
-        /* === BOTTOM SHEET === */
+        /* === CONFIGS === */
         #settingsSheet {
-            position: absolute; bottom: 0; left: 0; width: 100%; z-index: 2000;
-            border-radius: 30px 30px 0 0; padding: 25px 20px 40px;
-            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: absolute; bottom: 0; left: 0; width: 100%; z-index: 2000; border-radius: 30px 30px 0 0; padding: 25px 20px 40px;
+            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); border: 1px solid rgba(255, 255, 255, 0.1);
         }
         #settingsSheet.active { transform: translateY(0); }
         .sheet-handle { width: 40px; height: 5px; background: rgba(0,0,0,0.2); border-radius: 10px; margin: 0 auto 20px; }
@@ -188,7 +187,6 @@
 
         #backdrop { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1500; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
         #backdrop.active { opacity: 1; pointer-events: auto; }
-
         .leaflet-control-zoom, .leaflet-control-attribution { display: none; } 
 
         /* === MODO ESCURO === */
@@ -206,17 +204,16 @@
         body.dark-mode .layer-round-btn.active { background: var(--accent); color: white; }
         body.dark-mode .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
 
-        #export-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 9999; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
+        #export-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 99999; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; }
     </style>
 </head>
 <body>
 
-    <!-- Wrapper para captura de ecrã (inclui mapa + selo) -->
     <div id="capture-wrapper">
         <div id="map"></div>
         
-        <!-- SELO DE DADOS (Invisível no uso normal, revelado apenas na foto) -->
-        <div id="export-watermark" class="glass-panel">
+        <!-- SELO DE DADOS: Oculto via CSS visibility para dom-to-image renderizar bem depois -->
+        <div id="export-watermark">
             <div class="wm-title">Relatório BingoApp</div>
             <hr class="wm-divider">
             <div class="wm-stat"><span>⏱️ Tempo:</span> <span id="wm-time">00:00</span></div>
@@ -237,7 +234,6 @@
         <h3 style="margin: 0; font-family: sans-serif;">Processando Relatório...</h3>
     </div>
 
-    <!-- UI Elements -->
     <div id="header-status" class="glass-panel ui-element">
         <div id="status-indicator" class="status-dot"></div>
         <span id="status-text">Procurando ESP32...</span>
@@ -464,7 +460,7 @@
     let pontosRegistrados = []; 
     const RAIO_MINIMO_METROS = 5;
 
-    // --- EXPORTAÇÃO INTELIGENTE (FOTO COM RELATÓRIO) ---
+    // --- EXPORTAÇÃO INTELIGENTE (CORRIGIDA Z-INDEX) ---
     document.getElementById('btnExport').addEventListener('click', async () => {
         let bounds = null;
         if (userPathCoords.length > 0) bounds = L.polyline(userPathCoords).getBounds();
@@ -477,24 +473,24 @@
         const uiElements = document.querySelectorAll('.ui-element');
         uiElements.forEach(el => el.style.opacity = '0');
 
-        // 2. Prepara o Selo (Watermark) com os dados reais
+        // 2. Prepara o Selo (Watermark)
         const watermark = document.getElementById('export-watermark');
         document.getElementById('wm-time').innerText = statTimeEl.innerText;
         document.getElementById('wm-dist').innerText = statDistEl.innerText;
         document.getElementById('wm-reads').innerText = statReadsEl.innerText;
         
-        // 3. Mostra o Selo (ele está dentro da div #capture-wrapper que será exportada)
-        watermark.style.display = 'flex';
+        // Em vez de display: none/flex, usamos visibility e opacity para forçar a renderização correta
+        watermark.style.visibility = 'visible';
+        watermark.style.opacity = '1';
 
         const centerBefore = map.getCenter();
         const zoomBefore = map.getZoom();
         
-        // Foca no caminho com uma margem de segurança para o selo não ficar por cima do trajeto
-        if (bounds) map.fitBounds(bounds, { paddingBottomRight: [200, 200], paddingTopLeft: [50, 50], animate: false });
+        // Foca no caminho com margem
+        if (bounds) map.fitBounds(bounds, { paddingBottomRight: [250, 250], paddingTopLeft: [50, 50], animate: false });
 
         setTimeout(async () => {
             try {
-                // Captura o wrapper que contém o mapa E o selo d'água
                 const captureNode = document.getElementById('capture-wrapper');
                 const dataUrl = await domtoimage.toPng(captureNode, {
                     width: captureNode.clientWidth, height: captureNode.clientHeight,
@@ -511,11 +507,12 @@
             } finally {
                 // Restaura o layout normal
                 uiElements.forEach(el => el.style.opacity = '');
-                watermark.style.display = 'none'; // Esconde o selo d'água novamente
+                watermark.style.visibility = 'hidden'; 
+                watermark.style.opacity = '0';
                 if (bounds) map.setView(centerBefore, zoomBefore, { animate: false });
                 overlay.style.display = 'none';
             }
-        }, 1200); // 1.2s para garantir o carregamento do mapa na nova posição
+        }, 1200);
     });
 
     // --- LÓGICA DO MENU DE CONFIGURAÇÕES ---
@@ -583,7 +580,6 @@
 
     document.getElementById('btnAddManual').addEventListener('click', () => { processarValor(document.getElementById('manualInput').value); });
 
-    // --- CAPTURA DE LOCALIZAÇÃO (GEOLOCATION) ---
     if (navigator.geolocation) {
         navigator.geolocation.watchPosition(position => {
             currentLat = position.coords.latitude;
@@ -620,7 +616,6 @@
 
     document.getElementById('btnCenter').addEventListener('click', () => { if (currentLat !== 0) map.setView([currentLat, currentLng], 18); });
 
-    // --- BLUETOOTH (ESP32) ---
     const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
     const CHAR_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
