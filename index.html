@@ -11,7 +11,55 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">    
     
+    <!-- SCRIPT DE VERIFICAÇÃO DE TEMA (Previne o piscar branco ao carregar) -->
+    <script>
+        const savedTheme = localStorage.getItem('theme');
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    </script>
+
     <style>    
+        /* ========================================================
+           VARIÁVEIS DE TEMA (CLARO / ESCURO)
+           ======================================================== */
+        :root {
+            /* Cores Modo Claro */
+            --bg-main: #EEF0F2;
+            --bg-gradient: linear-gradient(180deg, #F9FAFB 0%, #E5E7EB 100%);
+            --surface-main: #FFFFFF;
+            --surface-glass: rgba(255, 255, 255, 0.80);
+            --text-main: #000000;
+            --text-title-mobile: #111827;
+            --text-muted: #6B7280;
+            --btn-primary-bg: #000000;
+            --btn-primary-text: #FFFFFF;
+            --btn-sec-bg: rgba(0, 0, 0, 0.05);
+            --btn-sec-hover: rgba(0, 0, 0, 0.1);
+            --drag-indicator: rgba(0, 0, 0, 0.15);
+            --modal-overlay: rgba(0, 0, 0, 0.3);
+            --shadow-color: rgba(0,0,0,0.15);
+        }
+
+        [data-theme="dark"] {
+            /* Cores Modo Escuro */
+            --bg-main: #111827;
+            --bg-gradient: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+            --surface-main: #1f2937;
+            --surface-glass: rgba(31, 41, 55, 0.85);
+            --text-main: #F9FAFB;
+            --text-title-mobile: #F9FAFB;
+            --text-muted: #9CA3AF;
+            --btn-primary-bg: #F9FAFB;
+            --btn-primary-text: #111827;
+            --btn-sec-bg: rgba(255, 255, 255, 0.1);
+            --btn-sec-hover: rgba(255, 255, 255, 0.2);
+            --drag-indicator: rgba(255, 255, 255, 0.3);
+            --modal-overlay: rgba(0, 0, 0, 0.6);
+            --shadow-color: rgba(0,0,0,0.5);
+        }
+
         /* ========================================================
            RESET GERAL
            ======================================================== */
@@ -32,12 +80,136 @@
             width: 100%;    
             overflow: hidden; 
             font-family: 'Inter', sans-serif;    
-            background-color: #EEF0F2; 
+            background-color: var(--bg-main); 
+            color: var(--text-main);
+            transition: background-color 0.4s ease, color 0.4s ease; /* Transição suave do Dark Mode */
         }    
 
         .desktop-view { display: none; }
         .mobile-view { display: none; }
         #splash-screen { display: none; } 
+
+        /* ========================================================
+           BOTÃO DE TEMA (SOL / LUA)
+           ======================================================== */
+        .theme-toggle-btn {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            z-index: 50;
+            background: var(--surface-main);
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            color: var(--text-main);
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .theme-toggle-btn:active { transform: scale(0.9); }
+        .theme-toggle-btn svg { width: 22px; height: 22px; }
+        
+        /* Alternância dos ícones baseada no tema ativo */
+        .icon-sun { display: none; }
+        .icon-moon { display: block; }
+        
+        [data-theme="dark"] .icon-sun { display: block; color: #FBBF24; }
+        [data-theme="dark"] .icon-moon { display: none; }
+
+        /* Animação de entrada do botão */
+        .theme-toggle-btn {
+            animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) both 2.4s;
+        }
+
+        /* ========================================================
+           MODAL "O QUE É?" (Ilha Flutuante Estilo iOS)
+           ======================================================== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--modal-overlay);
+            backdrop-filter: blur(10px); 
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 10000; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease, background-color 0.4s ease;
+        }
+
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+
+        .modal-container {
+            background: var(--surface-main);
+            width: 90%; 
+            max-width: 500px;
+            max-height: 85%; 
+            border-radius: 32px; 
+            padding: 32px 24px;
+            box-shadow: 0 25px 50px var(--shadow-color);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.85) translateY(20px);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease, background-color 0.4s ease;
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            background: var(--btn-sec-bg);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: background 0.2s, color 0.4s ease;
+        }
+        .modal-close-btn:active { background: var(--btn-sec-hover); }
+
+        .modal-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2rem;
+            text-transform: uppercase;
+            color: var(--text-main);
+            margin-bottom: 16px;
+            margin-right: 20px; 
+            transition: color 0.4s ease;
+        }
+
+        .modal-body {
+            overflow-y: auto; 
+            padding-right: 8px; 
+        }
+
+        .modal-text {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            color: var(--text-muted);
+            transition: color 0.4s ease;
+        }
 
         /* ========================================================
            LAYOUT MOBILE / TABLET (até 1024px)
@@ -46,311 +218,122 @@
             
             /* --- SPLASH SCREEN --- */
             #splash-screen {
-                display: flex;
-                position: fixed;
-                inset: 0; 
-                background: linear-gradient(180deg, #F9FAFB 0%, #E5E7EB 100%);
-                z-index: 9999; 
-                justify-content: center;
-                align-items: center;
-                animation: fadeOutSplash 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards 2.2s;
+                display: flex; position: fixed; inset: 0; background: var(--bg-gradient); z-index: 9999; justify-content: center; align-items: center; animation: fadeOutSplash 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards 2.2s;
             }
-
-            .splash-content {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                transform: scale(1.3); 
-            }
-
-            .logo-icon-splash {
-                width: 32px;
-                height: 32px;
-                background: linear-gradient(135deg, #FF6B00 50%, #2A5CAA 50%);
-                box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-                transform-origin: center;
-                animation: buildIconSplash 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 0.2s;
-                opacity: 0;
-            }
-
-            .logo-text-splash {
-                font-size: 2rem;
-                font-weight: 800;
-                color: #111827;
-                letter-spacing: -0.5px;
-                clip-path: inset(0 100% 0 0);
-                animation: swipeTextRevealSplash 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.9s;
-            }
-            .logo-text-splash span { font-weight: 400; color: #6B7280; }
-
+            .splash-content { display: flex; align-items: center; gap: 12px; transform: scale(1.3); }
+            .logo-icon-splash { width: 32px; height: 32px; background: linear-gradient(135deg, #FF6B00 50%, #2A5CAA 50%); box-shadow: 0 8px 20px rgba(0,0,0,0.15); transform-origin: center; animation: buildIconSplash 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 0.2s; opacity: 0; }
+            .logo-text-splash { font-size: 2rem; font-weight: 800; color: var(--text-title-mobile); letter-spacing: -0.5px; clip-path: inset(0 100% 0 0); animation: swipeTextRevealSplash 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.9s; }
+            .logo-text-splash span { font-weight: 400; color: var(--text-muted); }
 
             /* --- TELA INICIAL --- */
-            .mobile-view {
-                display: flex;
-                flex-direction: column;
-                height: 100%;
-                width: 100%;
-                position: relative;
-                background: linear-gradient(180deg, #F9FAFB 0%, #E5E7EB 100%);
-            }
-
-            .mobile-header {
-                padding: 20px 24px;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                z-index: 10;
-                animation: slideDownHeader 0.8s cubic-bezier(0.16, 1, 0.3, 1) both 2.3s;
-            }
-
-            .logo-icon-mobile {
-                width: 28px;
-                height: 28px;
-                background: linear-gradient(135deg, #FF6B00 50%, #2A5CAA 50%);
-                border-radius: 50% 50% 0 50%;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            }
-
-            .logo-text-mobile {
-                font-size: 1.5rem;
-                font-weight: 800;
-                color: #111827;
-                letter-spacing: -0.5px;
-            }
-            .logo-text-mobile span { font-weight: 400; color: #6B7280;}
-
+            .mobile-view { display: flex; flex-direction: column; height: 100%; width: 100%; position: relative; background: var(--bg-gradient); transition: background 0.4s ease; }
+            .mobile-header { padding: 20px 24px; display: flex; align-items: center; gap: 8px; z-index: 10; animation: slideDownHeader 0.8s cubic-bezier(0.16, 1, 0.3, 1) both 2.3s; }
+            .logo-icon-mobile { width: 28px; height: 28px; background: linear-gradient(135deg, #FF6B00 50%, #2A5CAA 50%); border-radius: 50% 50% 0 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+            .logo-text-mobile { font-size: 1.5rem; font-weight: 800; color: var(--text-title-mobile); letter-spacing: -0.5px; transition: color 0.4s ease; }
+            .logo-text-mobile span { font-weight: 400; color: var(--text-muted);}
 
             /* --- ÁREA DO PIN 3D --- */
-            .mobile-hero {
-                flex-grow: 1;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                position: relative;
-                z-index: 5;
-                transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.5s;
-            }
-
-            .mobile-hero.shrunk {
-                transform: scale(0.85) translateY(-30px);
-                opacity: 0.6;
-            }
-
-            .pin-entrance-wrapper {
-                width: 75%;
-                max-width: 350px;
-                animation: popInSpring 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) both 2.5s; 
-            }
-
-            .mobile-pin {
-                width: 100%;
-                height: auto;
-                filter: drop-shadow(0 20px 30px rgba(0,0,0,0.15));
-                animation: float 4s ease-in-out infinite;
-                transform-origin: center bottom;
-            }
+            .mobile-hero { flex-grow: 1; display: flex; align-items: center; justify-content: center; position: relative; z-index: 5; transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.5s; }
+            .mobile-hero.shrunk { transform: scale(0.85) translateY(-30px); opacity: 0.6; }
+            .pin-entrance-wrapper { width: 75%; max-width: 350px; animation: popInSpring 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) both 2.5s; }
+            .mobile-pin { width: 100%; height: auto; filter: drop-shadow(0 20px 30px var(--shadow-color)); animation: float 4s ease-in-out infinite; transform-origin: center bottom; transition: filter 0.4s ease; }
 
             /* --- BOTTOM SHEET (ABA INFERIOR) --- */
-            .sheet-entrance-wrapper {
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                z-index: 20;
-                animation: slideUpWrapper 0.8s cubic-bezier(0.16, 1, 0.3, 1) both 2.6s;
-            }
-
-            .mobile-bottom-sheet {
-                background: rgba(255, 255, 255, 0.80);
-                backdrop-filter: blur(25px); 
-                -webkit-backdrop-filter: blur(25px);
-                border-radius: 32px 32px 0 0;
-                padding: 24px 24px 40px 24px;
-                box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.08);
-                display: flex;
-                flex-direction: column;
-                
-                /* Agora esconde 260px para acomodar os 3 botões */
-                transform: translateY(260px); 
-                transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
-            }
-
-            .mobile-bottom-sheet.expanded {
-                transform: translateY(0);
-            }
-
-            .peek-area {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                cursor: pointer; 
-            }
-
-            .drag-indicator {
-                width: 40px;
-                height: 5px;
-                background-color: rgba(0, 0, 0, 0.15);
-                border-radius: 10px;
-                margin-bottom: 20px;
-            }
-
-            .mobile-title {
-                font-family: 'Oswald', sans-serif;
-                font-size: 2.8rem;
-                font-weight: 700;
-                line-height: 1.1;
-                color: #000;
-                text-transform: uppercase;
-                text-align: left;
-                width: 100%;
-                animation: fadeSlideUpElement 0.8s cubic-bezier(0.16, 1, 0.3, 1) both 2.8s;
-            }
-
-            .swipe-hint {
-                font-size: 0.8rem;
-                color: #6B7280;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                font-weight: 600;
-                margin-top: 10px;
-                margin-bottom: 24px; 
-                opacity: 0;
-                animation: fadeInHint 1s ease forwards 3.3s; 
-            }
+            .sheet-entrance-wrapper { position: absolute; bottom: 0; left: 0; width: 100%; z-index: 20; animation: slideUpWrapper 0.8s cubic-bezier(0.16, 1, 0.3, 1) both 2.6s; }
+            .mobile-bottom-sheet { background: var(--surface-glass); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 32px 32px 0 0; padding: 24px 24px 40px 24px; box-shadow: 0 -10px 40px var(--shadow-color); display: flex; flex-direction: column; transform: translateY(260px); transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1), background-color 0.4s ease, box-shadow 0.4s ease; }
+            .mobile-bottom-sheet.expanded { transform: translateY(0); }
+            .peek-area { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+            .drag-indicator { width: 40px; height: 5px; background-color: var(--drag-indicator); border-radius: 10px; margin-bottom: 20px; transition: background-color 0.4s ease; }
+            .mobile-title { font-family: 'Oswald', sans-serif; font-size: 2.8rem; font-weight: 700; line-height: 1.1; color: var(--text-main); text-transform: uppercase; text-align: left; width: 100%; animation: fadeSlideUpElement 0.8s cubic-bezier(0.16, 1, 0.3, 1) both 2.8s; transition: color 0.4s ease;}
+            .swipe-hint { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-top: 10px; margin-bottom: 24px; opacity: 0; animation: fadeInHint 1s ease forwards 3.3s; transition: color 0.4s ease;}
 
             /* Botões */
-            .mobile-actions {
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-                width: 100%;
-            }
-
-            .btn-primary {
-                background: #000;
-                color: #FFF;
-                font-weight: 600;
-                font-size: 1.1rem;
-                padding: 18px;
-                border-radius: 18px;
-                text-align: center;
-                transition: transform 0.2s, background 0.2s;
-                box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-                animation: fadeSlideUpElement 0.8s cubic-bezier(0.16, 1, 0.3, 1) both 2.9s;
-            }
-            .btn-primary:active { transform: scale(0.96); background: #333; }
-
-            .btn-secondary {
-                background: rgba(0, 0, 0, 0.05);
-                color: #000;
-                font-weight: 600;
-                font-size: 1.1rem;
-                padding: 18px;
-                border-radius: 18px;
-                text-align: center;
-                transition: transform 0.2s, background 0.2s;
-            }
-            .btn-secondary:active { transform: scale(0.96); background: rgba(0, 0, 0, 0.1); }
+            .mobile-actions { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+            .btn-primary { background: var(--btn-primary-bg); color: var(--btn-primary-text); font-weight: 600; font-size: 1.1rem; padding: 18px; border-radius: 18px; text-align: center; transition: transform 0.2s, background-color 0.4s ease, color 0.4s ease; box-shadow: 0 8px 20px var(--shadow-color); animation: fadeSlideUpElement 0.8s cubic-bezier(0.16, 1, 0.3, 1) both 2.9s; }
+            .btn-primary:active { transform: scale(0.96); filter: brightness(0.8); }
+            .btn-secondary { background: var(--btn-sec-bg); color: var(--text-main); font-weight: 600; font-size: 1.1rem; padding: 18px; border-radius: 18px; text-align: center; transition: transform 0.2s, background-color 0.4s ease, color 0.4s ease; cursor: pointer; }
+            .btn-secondary:active { transform: scale(0.96); background: var(--btn-sec-hover); }
             
-            /* Delays em cascata para os botões secundários */
             .btn-secondary:nth-child(2) { animation: fadeSlideUpElement 0.8s cubic-bezier(0.16, 1, 0.3, 1) both 3.0s; }
             .btn-secondary:nth-child(3) { animation: fadeSlideUpElement 0.8s cubic-bezier(0.16, 1, 0.3, 1) both 3.1s; }
 
-            /* ========================================================
-               KEYFRAMES (MOBILE)
-               ======================================================== */
-            @keyframes buildIconSplash {
-                0% { transform: scale(0) rotate(-90deg); border-radius: 50%; opacity: 0; }
-                60% { transform: scale(1.2) rotate(60deg); border-radius: 50%; opacity: 1; }
-                80% { transform: scale(1) rotate(45deg); border-radius: 50%; opacity: 1;}
-                100% { transform: scale(1) rotate(45deg); border-radius: 50% 50% 0 50%; opacity: 1;}
-            }
-            @keyframes swipeTextRevealSplash {
-                0% { clip-path: inset(0 100% 0 0); transform: translateX(-15px); }
-                100% { clip-path: inset(0 0 0 0); transform: translateX(0); }
-            }
+            /* Keyframes Desktop e Mobile partilhados omitidos do resumo visual */
+            @keyframes buildIconSplash { 0% { transform: scale(0) rotate(-90deg); border-radius: 50%; opacity: 0; } 60% { transform: scale(1.2) rotate(60deg); border-radius: 50%; opacity: 1; } 80% { transform: scale(1) rotate(45deg); border-radius: 50%; opacity: 1;} 100% { transform: scale(1) rotate(45deg); border-radius: 50% 50% 0 50%; opacity: 1;} }
+            @keyframes swipeTextRevealSplash { 0% { clip-path: inset(0 100% 0 0); transform: translateX(-15px); } 100% { clip-path: inset(0 0 0 0); transform: translateX(0); } }
             @keyframes fadeOutSplash { to { opacity: 0; visibility: hidden; } }
-            @keyframes slideDownHeader {
-                from { opacity: 0; transform: translateY(-20px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-            @keyframes popInSpring {
-                0% { opacity: 0; transform: scale(0.5) translateY(40px); }
-                60% { opacity: 1; transform: scale(1.05) translateY(-10px); }
-                100% { opacity: 1; transform: scale(1) translateY(0); }
-            }
-            @keyframes slideUpWrapper {
-                from { transform: translateY(100%); }
-                to { transform: translateY(0); }
-            }
-            @keyframes fadeSlideUpElement {
-                from { opacity: 0; transform: translateY(20px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-            @keyframes fadeInHint {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-            @keyframes float {
-                0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(-15px); }
-            }
+            @keyframes slideDownHeader { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+            @keyframes popInSpring { 0% { opacity: 0; transform: scale(0.5) translateY(40px); } 60% { opacity: 1; transform: scale(1.05) translateY(-10px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+            @keyframes slideUpWrapper { from { transform: translateY(100%); } to { transform: translateY(0); } }
+            @keyframes fadeSlideUpElement { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+            @keyframes fadeInHint { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+            @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         }
 
         /* ========================================================
-           LAYOUT DESKTOP (Com agrupamento de links à esquerda)
+           LAYOUT DESKTOP 
            ======================================================== */
         @media (min-width: 1025px) {
-            .desktop-view {
-                display: flex; position: relative; width: 100%; height: 100%; flex-direction: column; 
-            }
-            .desktop-header {    
-                position: absolute; top: 30px; left: 40px; z-index: 20; display: flex; align-items: center; gap: 12px;    
-            }    
-            .logo-icon {    
-                width: 32px; height: 32px; background: linear-gradient(135deg, #FF6B00 50%, #2A5CAA 50%); border-radius: 50% 50% 0 50%; transform: rotate(45deg);    
-            }    
-            .logo-text { font-size: 2.5rem; font-weight: 800; color: #000; letter-spacing: -0.5px; }    
+            .desktop-view { display: flex; position: relative; width: 100%; height: 100%; flex-direction: column; }
+            .desktop-header { position: absolute; top: 30px; left: 40px; z-index: 20; display: flex; align-items: center; gap: 12px; }    
+            .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, #FF6B00 50%, #2A5CAA 50%); border-radius: 50% 50% 0 50%; transform: rotate(45deg); }    
+            .logo-text { font-size: 2.5rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; transition: color 0.4s ease;}    
             .logo-text span { font-weight: 400; }    
-            .white-background-shape {    
-                position: absolute; top: 29%; right: -15%; width: 65%; height: 40%; background-color: #FFFFFF; border-radius: 110px; z-index: 1; box-shadow: -10px 10px 40px rgba(0,0,0,0.02);
-            }    
-            .pin-image {    
-                position: absolute; top: 50%; right: -20%; transform: translateY(-55%); width: 70%; max-width: 1200px; height: auto; z-index: 2; filter: drop-shadow(0 25px 35px rgba(0,0,0,0.2)); pointer-events: none; 
-            }    
-            .content-area {    
-                position: absolute; bottom: 8%; left: 9%; width: calc(100% - 40px); z-index: 10; display: flex; flex-direction: column; gap: 40px;    
-            }    
-            .hero-title {    
-                font-family: 'Oswald', sans-serif; font-size: clamp(4rem, 9vw, 8rem); font-weight: 600; line-height: 0.95; color: #000; text-transform: uppercase; white-space: pre-wrap; max-width: 60%; 
-            }    
+            .white-background-shape { position: absolute; top: 29%; right: -15%; width: 65%; height: 40%; background-color: var(--surface-main); border-radius: 110px; z-index: 1; box-shadow: -10px 10px 40px var(--shadow-color); transition: background-color 0.4s ease, box-shadow 0.4s ease; }    
+            .pin-image { position: absolute; top: 50%; right: -20%; transform: translateY(-55%); width: 70%; max-width: 1200px; height: auto; z-index: 2; filter: drop-shadow(0 25px 35px var(--shadow-color)); pointer-events: none; transition: filter 0.4s ease; }    
+            .content-area { position: absolute; bottom: 8%; left: 9%; width: calc(100% - 40px); z-index: 10; display: flex; flex-direction: column; gap: 40px; }    
+            .hero-title { font-family: 'Oswald', sans-serif; font-size: clamp(4rem, 9vw, 8rem); font-weight: 600; line-height: 0.95; color: var(--text-main); text-transform: uppercase; white-space: pre-wrap; max-width: 60%; transition: color 0.4s ease; }    
             
-            .bottom-menu {    
-                background-color: #FFFFFF; padding: 16px 35px; border-radius: 50px; display: flex; justify-content: space-between; align-items: center; width: 60%; max-width: 850px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: transform 0.3s ease, box-shadow 0.3s ease;
-            }
-            .bottom-menu:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.08); }    
+            .bottom-menu { background-color: var(--surface-main); padding: 16px 35px; border-radius: 50px; display: flex; justify-content: space-between; align-items: center; width: 60%; max-width: 850px; box-shadow: 0 10px 30px var(--shadow-color); transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.4s ease; }
+            .bottom-menu:hover { transform: translateY(-5px); box-shadow: 0 15px 40px var(--shadow-color); }    
             
-            /* Novo grupo para os links secundários à esquerda */
-            .menu-links-left {
-                display: flex;
-                gap: 25px; /* Espaço entre "O que é?" e "Interprete os dados" */
-                align-items: center;
-            }
-
-            .menu-item-left { font-weight: 600; color: #555; font-size: 1.3rem; cursor: pointer; transition: color 0.3s; }
-            .menu-item-left:hover { color: #000; }
+            .menu-links-left { display: flex; gap: 25px; align-items: center; }
+            .menu-item-left { font-weight: 600; color: var(--text-muted); font-size: 1.3rem; cursor: pointer; transition: color 0.3s; border: none; background: transparent; padding: 0; font-family: inherit;}
+            .menu-item-left:hover { color: var(--text-main); }
             
-            .menu-item-right { font-weight: 700; color: #000; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }    
+            .menu-item-right { font-weight: 700; color: var(--text-main); font-size: 1.4rem; display: flex; align-items: center; gap: 10px; transition: color 0.4s ease; }    
             .menu-item-right::after { content: '→'; transition: transform 0.3s ease; }
             .menu-item-right:hover::after { transform: translateX(5px); }
+
+            .theme-toggle-btn { top: 30px; right: 40px; }
         }
     </style>    
 </head>    
 <body>    
     
-    <!-- ==========================================
-         SPLASH SCREEN
-         ========================================== -->
+    <!-- BOTÃO FLUTUANTE DE TEMA -->
+    <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Alternar tema">
+        <!-- Ícone da Lua (Aparece no Modo Claro) -->
+        <svg class="icon-moon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+        </svg>
+        <!-- Ícone do Sol (Aparece no Modo Escuro) -->
+        <svg class="icon-sun" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+        </svg>
+    </button>
+
+    <!-- MODAL "O QUE É" -->
+    <div id="aboutModalOverlay" class="modal-overlay">
+        <div class="modal-container">
+            <button class="modal-close-btn" id="closeModalBtn">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M1 1L13 13M1 13L13 1"/>
+                </svg>
+            </button>
+            <h2 class="modal-title">O que é?</h2>
+            <div class="modal-body">
+                <p class="modal-text">
+                    O BINGO Maps é o futuro da escavação. Uma ferramenta visual e inteligente desenvolvida para mapear, planejar e organizar...
+                    <br><br>
+                    *(Aqui nós vamos colocar o texto completo depois)*
+                </p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- SPLASH SCREEN -->
     <div id="splash-screen">
         <div class="splash-content">
             <div class="logo-icon-splash"></div>
@@ -358,9 +341,7 @@
         </div>
     </div>
 
-    <!-- ==========================================
-         VISÃO MOBILE E TABLET
-         ========================================== -->
+    <!-- VISÃO MOBILE E TABLET -->
     <main class="mobile-view">
         <header class="mobile-header">
             <div class="logo-icon-mobile"></div>    
@@ -375,26 +356,22 @@
 
         <div class="sheet-entrance-wrapper">
             <div class="mobile-bottom-sheet" id="bottomSheet">
-                <!-- Área visível da aba -->
                 <div class="peek-area" id="peekArea">
                     <div class="drag-indicator"></div>
                     <h1 class="mobile-title">O FUTURO DA<br>ESCAVAÇÃO</h1>
                     <div class="swipe-hint" id="swipeHint">Arraste para ver mais</div>
                 </div>
                 
-                <!-- Botões escondidos -->
                 <div class="mobile-actions">
                     <a href="BINGOHeatMap.html" class="btn-primary">Usar o BINGO</a>
                     <a href="interpretarDados.html" class="btn-secondary">Interprete os dados</a>
-                    <a href="#" class="btn-secondary">O que é?</a>
+                    <a href="#" class="btn-secondary btn-about">O que é?</a>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- ==========================================
-         VISÃO DESKTOP
-         ========================================== -->
+    <!-- VISÃO DESKTOP -->
     <main class="desktop-view app-container">    
         <header class="desktop-header">    
             <div class="logo-icon"></div>    
@@ -405,9 +382,8 @@
         <div class="content-area">    
             <h1 class="hero-title">O FUTURO DA<br>ESCAVAÇÃO</h1>    
             <div class="bottom-menu">    
-                <!-- Agrupamento dos links secundários -->
                 <div class="menu-links-left">
-                    <a href="#" class="menu-item-left">O que é?</a>  
+                    <button class="menu-item-left btn-about">O que é?</button>  
                     <a href="interpretarDados.html" class="menu-item-left">Interprete os dados</a>
                 </div>  
                 <a href="BINGOHeatMap.html" class="menu-item-right">Usar o BINGO</a>    
@@ -416,28 +392,42 @@
     </main>    
     
     <script>
-        // Força o recarregamento da página se o usuário voltar pelo botão do navegador (bfcache)
+        // --- PREVENÇÃO DE BFG CACHE ---
         window.addEventListener('pageshow', (event) => {
-            if (event.persisted) {
-                window.location.reload();
-            }
+            if (event.persisted) window.location.reload();
         });
 
-        // --- Registro do Service Worker ---
+        // --- SERVICE WORKER ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .catch(err => console.error('Erro no SW', err));
+                navigator.serviceWorker.register('sw.js').catch(err => console.error('Erro no SW', err));
             });
         }
 
-        // Remove a Splash Screen após 3 segundos
+        // --- LÓGICA DE TROCA DE TEMA (DARK MODE) ---
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        themeToggleBtn.addEventListener('click', () => {
+            // Verifica o tema atual
+            let currentTheme = document.documentElement.getAttribute('data-theme');
+            
+            if (currentTheme === 'dark') {
+                // Muda para claro
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+            } else {
+                // Muda para escuro
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+
+        // --- SPLASH SCREEN CLEANUP ---
         setTimeout(() => {
             const splashScreen = document.getElementById('splash-screen');
             if (splashScreen) splashScreen.remove();
         }, 3000);
 
-        // --- Lógica Interativa da Aba Inferior (Mobile) ---
+        // --- LÓGICA DA ABA INFERIOR (MOBILE) ---
         const sheet = document.getElementById('bottomSheet');
         const peekArea = document.getElementById('peekArea');
         const swipeHint = document.getElementById('swipeHint');
@@ -445,40 +435,43 @@
         let isExpanded = false;
         let isReady = false; 
 
-        // Libera interações depois de 3.5 segundos
         setTimeout(() => { isReady = true; }, 3500);
 
-        // Função para alternar o estado da aba
         function toggleSheet(forceState) {
             if (!isReady) return;
-            
             isExpanded = forceState !== undefined ? forceState : !isExpanded;
-            
             sheet.classList.toggle('expanded', isExpanded);
             mobileHero.classList.toggle('shrunk', isExpanded);
-            
             swipeHint.textContent = isExpanded ? 'Arraste para baixo para fechar' : 'Arraste para ver mais';
         }
 
-        // Eventos de clique e swipe
         peekArea.addEventListener('click', () => toggleSheet());
 
         let startY = 0;
-        sheet.addEventListener('touchstart', (e) => {
-            startY = e.touches[0].clientY;
-        }, { passive: true });
-
+        sheet.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; }, { passive: true });
         sheet.addEventListener('touchend', (e) => {
             if (!isReady) return;
-            const endY = e.changedTouches[0].clientY;
-            const diffY = startY - endY;
-
-            if (diffY > 30 && !isExpanded) {
-                toggleSheet(true); 
-            } else if (diffY < -30 && isExpanded) {
-                toggleSheet(false); 
-            }
+            const diffY = startY - e.changedTouches[0].clientY;
+            if (diffY > 30 && !isExpanded) toggleSheet(true); 
+            else if (diffY < -30 && isExpanded) toggleSheet(false); 
         }, { passive: true });
+
+        // --- LÓGICA DO MODAL "O QUE É?" ---
+        const aboutBtns = document.querySelectorAll('.btn-about');
+        const modalOverlay = document.getElementById('aboutModalOverlay');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        aboutBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault(); 
+                modalOverlay.classList.add('active');
+            });
+        });
+
+        closeModalBtn.addEventListener('click', () => modalOverlay.classList.remove('active'));
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) modalOverlay.classList.remove('active');
+        });
 
     </script>
 </body>    
