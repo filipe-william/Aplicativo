@@ -25,7 +25,7 @@
             --radius-lg: 20px;
             --radius-md: 12px;
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.12);
             --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
@@ -36,7 +36,7 @@
             --text-muted: #aeaeb2;
             --border-color: #38383a;
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -172,7 +172,7 @@
         .stat-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; }
         .stat-value { font-size: 20px; font-weight: 700; color: var(--text-main); font-variant-numeric: tabular-nums; }
 
-        /* === LEGENDA DO MAPA === */
+        /* LEGENDA DO MAPA */
         .legend-area {
             background: var(--bg-secondary); padding: 15px; border-radius: var(--radius-md);
             border: 1px solid var(--border-color); margin-bottom: 5px;
@@ -181,12 +181,9 @@
             font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; 
             color: var(--text-muted); font-weight: 600; margin-bottom: 12px;
         }
-        .legend-items {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; color: var(--text-main);
-        }
+        .legend-items { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; color: var(--text-main); }
         .legend-item { display: flex; align-items: center; gap: 8px; }
         .legend-icon { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-        
         .dot-blue { background: #007aff; }
         .dot-yellow { background: #ffcc00; }
         .dot-red { background: #ff3b30; }
@@ -213,6 +210,54 @@
         }
         .status-badge.visible { opacity: 1; }
 
+        /* === 3. MODAL DE CONFIGURAÇÕES === */
+        #settings-modal {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+            z-index: 2000; display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        #settings-modal.active { opacity: 1; pointer-events: auto; }
+        
+        .modal-content {
+            background: var(--bg-color); width: 90%; max-width: 400px;
+            border-radius: var(--radius-lg); box-shadow: var(--shadow-md);
+            transform: scale(0.95) translateY(20px); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+            overflow: hidden; border: 1px solid var(--border-color);
+        }
+        #settings-modal.active .modal-content { transform: scale(1) translateY(0); }
+
+        .modal-header {
+            padding: 20px; border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-header h2 { font-size: 18px; font-weight: 600; margin: 0; }
+        
+        .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        
+        .setting-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 0; border-bottom: 1px solid var(--border-color);
+        }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-info { display: flex; flex-direction: column; gap: 4px; }
+        .setting-title { font-size: 16px; font-weight: 500; color: var(--text-main); }
+        .setting-desc { font-size: 12px; color: var(--text-muted); }
+        
+        /* Toggle Switch iOS Style */
+        .toggle-switch { position: relative; width: 50px; height: 30px; appearance: none; background: #e5e5ea; border-radius: 30px; outline: none; cursor: pointer; transition: background 0.3s; margin: 0; }
+        body.dark-mode .toggle-switch { background: #38383a; }
+        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 26px; height: 26px; background: white; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .toggle-switch:checked { background: var(--success); }
+        .toggle-switch:checked::after { transform: translateX(20px); }
+
+        .btn-danger-outline {
+            background: transparent; border: 1px solid var(--danger); color: var(--danger);
+            padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px;
+            cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s;
+        }
+        .btn-danger-outline:active { background: rgba(255, 59, 48, 0.1); }
+
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
@@ -230,7 +275,7 @@
         /* === CORREÇÃO PARA IMPRESSÃO / SALVAR COMO PDF === */
         @media print {
             body, html { height: auto !important; overflow: visible !important; display: block !important; background: white !important; color: black !important; }
-            #intro-overlay, #navbar, #upload-overlay { display: none !important; }
+            #intro-overlay, #navbar, #upload-overlay, #settings-modal { display: none !important; }
             #main-container { display: block !important; height: auto !important; overflow: visible !important; }
             #map-section { height: 400px !important; border: 1px solid #ccc !important; margin-bottom: 20px !important; page-break-inside: avoid; }
             #workspace-section { width: 100% !important; overflow: visible !important; display: block !important; height: auto !important; }
@@ -239,7 +284,6 @@
             * { color: black !important; box-shadow: none !important; }
             .stat-card, .legend-area { border: 1px solid #ccc !important; background: #fff !important; }
             .page-title[placeholder]:empty:before, .editor-area[placeholder]:empty:before { display: none !important; }
-            /* Força impressoras a imprimirem a cor de fundo das bolinhas da legenda */
             .legend-icon { -webkit-print-color-adjust: exact; print-color-adjust: exact; } 
         }
     </style>
@@ -266,7 +310,8 @@
             <span>Workspace</span>
         </div>
         <div class="nav-actions">
-            <button class="btn-icon" id="btnTheme" title="Alternar Tema"><i data-lucide="moon"></i></button>
+            <!-- Botão Configurações substituiu o botão de Tema solto -->
+            <button class="btn-icon" id="btnOpenSettings" title="Configurações"><i data-lucide="settings"></i></button>
             <button class="btn-icon" id="btnPrint" title="Exportar Relatório PDF"><i data-lucide="printer"></i></button>
         </div>
     </header>
@@ -318,7 +363,7 @@
                     </div>
                 </div>
 
-                <!-- NOVA ÁREA: LEGENDA DO MAPA -->
+                <!-- LEGENDA DO MAPA -->
                 <div class="legend-area hidden" id="legendArea">
                     <div class="legend-title">Legenda do Mapa</div>
                     <div class="legend-items">
@@ -350,9 +395,36 @@
         </section>
     </main>
 
+    <!-- MODAL DE CONFIGURAÇÕES -->
+    <div id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Configurações</h2>
+                <button class="btn-icon" id="btnCloseSettings"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="setting-title">Modo Escuro</span>
+                        <span class="setting-desc">Ajustar a aparência da interface</span>
+                    </div>
+                    <input type="checkbox" class="toggle-switch" id="darkModeToggle">
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="setting-title">Página Anterior</span>
+                        <span class="setting-desc">Sair do analisador e voltar</span>
+                    </div>
+                    <button class="btn-danger-outline" id="btnGoBack"><i data-lucide="log-out" style="width: 16px;"></i> Voltar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 <script>
     lucide.createIcons();
 
+    // Inicialização da Animação
     window.addEventListener('load', () => {
         setTimeout(() => {
             document.body.classList.add('app-loaded');
@@ -360,22 +432,48 @@
         }, 2000); 
     });
 
-    const btnTheme = document.getElementById('btnTheme');
-    const savedTheme = localStorage.getItem('bingoWorkspaceTheme');
-    
-    if (savedTheme === 'dark' || (savedTheme === null && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
-        document.body.classList.add('dark-mode');
-        btnTheme.innerHTML = '<i data-lucide="sun"></i>';
-    }
+    // === LÓGICA DE CONFIGURAÇÕES (MODAL E MODO ESCURO) ===
+    const settingsModal = document.getElementById('settings-modal');
+    const btnOpenSettings = document.getElementById('btnOpenSettings');
+    const btnCloseSettings = document.getElementById('btnCloseSettings');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const btnGoBack = document.getElementById('btnGoBack');
 
-    btnTheme.addEventListener('click', () => {
-        document.body.classList.toggle('dark-mode');
-        const isDark = document.body.classList.contains('dark-mode');
-        localStorage.setItem('bingoWorkspaceTheme', isDark ? 'dark' : 'light');
-        btnTheme.innerHTML = isDark ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
-        lucide.createIcons();
+    // Abre e fecha modal
+    btnOpenSettings.addEventListener('click', () => settingsModal.classList.add('active'));
+    btnCloseSettings.addEventListener('click', () => settingsModal.classList.remove('active'));
+    
+    // Fecha modal clicando fora (no fundo borrado)
+    settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) settingsModal.classList.remove('active');
     });
 
+    // Carrega o tema salvo
+    const savedTheme = localStorage.getItem('bingoWorkspaceTheme');
+    if (savedTheme === 'dark' || (savedTheme === null && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        document.body.classList.add('dark-mode');
+        darkModeToggle.checked = true;
+    }
+
+    // Evento da chave de Modo Escuro
+    darkModeToggle.addEventListener('change', (e) => {
+        const isDark = e.target.checked;
+        document.body.classList.toggle('dark-mode', isDark);
+        localStorage.setItem('bingoWorkspaceTheme', isDark ? 'dark' : 'light');
+    });
+
+    // Evento de Voltar
+    btnGoBack.addEventListener('click', () => {
+        // Usa o histórico nativo do navegador para voltar para a página do mapa BingoApp original
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            // Fallback caso a pessoa tenha aberto a página diretamente numa aba nova
+            alert("Não há histórico de página anterior nesta aba. Você já está na página inicial do Workspace.");
+        }
+    });
+
+    // === GESTÃO DE NOTAS (LOCAL STORAGE) ===
     const docTitle = document.getElementById('docTitle');
     const docNotes = document.getElementById('docNotes');
 
@@ -394,11 +492,13 @@
     docTitle.addEventListener('input', saveContent);
     docNotes.addEventListener('input', saveContent);
 
+    // Impressão e PDF
     document.getElementById('btnPrint').addEventListener('click', () => {
         if(map) map.invalidateSize();
         window.print();
     });
 
+    // === CONFIGURAÇÃO DO MAPA LEAFLET ===
     const map = L.map('map', { zoomControl: false }).setView([-23.5505, -46.6333], 15);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap &copy; CARTO',
@@ -413,7 +513,7 @@
     let layerRed = L.heatLayer([], { radius: 15, blur: 10, gradient: {0.2: '#ff3b30', 0.65: '#c51162', 1.0: '#8b0000'} }).addTo(map);
     let userPathLine = L.polyline([], { color: '#af52de', weight: 4, opacity: 0.8, lineJoin: 'round', dashArray: '5, 10' }).addTo(map);
 
-
+    // === LÓGICA DE IMPORTAÇÃO DE ARQUIVO JSON ===
     const uploadOverlay = document.getElementById('upload-overlay');
     const fileInput = document.getElementById('fileInput');
 
@@ -450,7 +550,7 @@
 
         document.getElementById('metaDataArea').classList.remove('hidden');
         document.getElementById('statsArea').classList.remove('hidden');
-        document.getElementById('legendArea').classList.remove('hidden'); // Exibe a legenda!
+        document.getElementById('legendArea').classList.remove('hidden'); 
         document.getElementById('statusBadge').classList.add('visible');
 
         const dataFormatada = new Date(data.dataCriacao).toLocaleString('pt-BR');
