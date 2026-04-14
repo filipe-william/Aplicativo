@@ -46,7 +46,7 @@
             background-color: var(--bg-secondary); 
             color: var(--text-main); 
             height: 100vh; 
-            overflow: hidden; /* Mantém o comportamento de app na tela */
+            overflow: hidden; 
             display: flex; 
             flex-direction: column;
             transition: background-color 0.3s, color 0.3s;
@@ -142,14 +142,12 @@
         #workspace-section {
             width: 450px; background: var(--bg-color); display: flex; flex-direction: column;
             overflow-y: auto; overflow-x: hidden;
-            -webkit-overflow-scrolling: touch; /* Melhora rolagem no iOS */
+            -webkit-overflow-scrolling: touch; 
         }
 
         .workspace-content { padding: 30px 40px; display: flex; flex-direction: column; gap: 24px; }
 
-        /* Componentes do Workspace */
         .page-title, .editor-area {
-            /* CORREÇÃO PARA SELEÇÃO NO CELULAR */
             -webkit-user-select: text;
             user-select: text;
             -webkit-user-modify: read-write;
@@ -166,7 +164,7 @@
         .meta-item { display: flex; align-items: center; gap: 8px; }
         .meta-val { color: var(--text-main); font-weight: 500; font-variant-numeric: tabular-nums;}
 
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 5px; }
         .stat-card {
             background: var(--bg-secondary); padding: 15px; border-radius: var(--radius-md);
             border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 5px;
@@ -174,7 +172,27 @@
         .stat-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; }
         .stat-value { font-size: 20px; font-weight: 700; color: var(--text-main); font-variant-numeric: tabular-nums; }
 
-        .divider { height: 1px; background: var(--border-color); margin: 10px 0; border: none; }
+        /* === LEGENDA DO MAPA === */
+        .legend-area {
+            background: var(--bg-secondary); padding: 15px; border-radius: var(--radius-md);
+            border: 1px solid var(--border-color); margin-bottom: 5px;
+        }
+        .legend-title {
+            font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; 
+            color: var(--text-muted); font-weight: 600; margin-bottom: 12px;
+        }
+        .legend-items {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; color: var(--text-main);
+        }
+        .legend-item { display: flex; align-items: center; gap: 8px; }
+        .legend-icon { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+        
+        .dot-blue { background: #007aff; }
+        .dot-yellow { background: #ffcc00; }
+        .dot-red { background: #ff3b30; }
+        .line-icon { background: transparent; border-top: 3px dashed #af52de; border-radius: 0; height: 0; width: 14px; }
+
+        .divider { height: 1px; background: var(--border-color); margin: 5px 0; border: none; }
 
         /* Área de Notas (Content Editable) */
         .editor-area {
@@ -195,13 +213,11 @@
         }
         .status-badge.visible { opacity: 1; }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-        /* Responsividade */
         @media (max-width: 900px) {
             #main-container { flex-direction: column; overflow-y: auto; }
             #map-section { flex: none; height: 50vh; border-right: none; border-bottom: 1px solid var(--border-color); }
@@ -211,63 +227,26 @@
 
         .hidden { display: none !important; }
 
-
         /* === CORREÇÃO PARA IMPRESSÃO / SALVAR COMO PDF === */
         @media print {
-            /* Desativa limites de altura e rolagem, permitindo que a página flua naturalmente */
-            body, html { 
-                height: auto !important; 
-                overflow: visible !important; 
-                display: block !important; 
-                background: white !important; 
-                color: black !important; 
-            }
-            
-            /* Esconde elementos de interface desnecessários no PDF */
+            body, html { height: auto !important; overflow: visible !important; display: block !important; background: white !important; color: black !important; }
             #intro-overlay, #navbar, #upload-overlay { display: none !important; }
-            
-            /* Reorganiza o layout para ficar um debaixo do outro */
-            #main-container { 
-                display: block !important; 
-                height: auto !important; 
-                overflow: visible !important; 
-            }
-            
-            /* Define um tamanho fixo para o mapa na impressão */
-            #map-section { 
-                height: 400px !important; 
-                border: 1px solid #ccc !important; 
-                margin-bottom: 20px !important; 
-                page-break-inside: avoid;
-            }
-            
-            /* Permite que o workspace cresça o quanto precisar sem cortar texto */
-            #workspace-section { 
-                width: 100% !important; 
-                overflow: visible !important; 
-                display: block !important; 
-                height: auto !important; 
-            }
-            
+            #main-container { display: block !important; height: auto !important; overflow: visible !important; }
+            #map-section { height: 400px !important; border: 1px solid #ccc !important; margin-bottom: 20px !important; page-break-inside: avoid; }
+            #workspace-section { width: 100% !important; overflow: visible !important; display: block !important; height: auto !important; }
             .workspace-content { padding: 0 !important; display: block !important; }
-            
-            .editor-area { 
-                height: auto !important; 
-                overflow: visible !important; 
-                padding-bottom: 0 !important; 
-                page-break-inside: auto; 
-            }
-            
-            /* Força cores claras para não gastar tinta e ler bem */
+            .editor-area { height: auto !important; overflow: visible !important; padding-bottom: 0 !important; page-break-inside: auto; }
             * { color: black !important; box-shadow: none !important; }
-            .stat-card { border: 1px solid #ccc !important; background: #fff !important; }
+            .stat-card, .legend-area { border: 1px solid #ccc !important; background: #fff !important; }
             .page-title[placeholder]:empty:before, .editor-area[placeholder]:empty:before { display: none !important; }
+            /* Força impressoras a imprimirem a cor de fundo das bolinhas da legenda */
+            .legend-icon { -webkit-print-color-adjust: exact; print-color-adjust: exact; } 
         }
     </style>
 </head>
 <body>
 
-    <!-- TELA DE INTRODUÇÃO (TEMA DADOS/BANCO DE DADOS) -->
+    <!-- TELA DE INTRODUÇÃO -->
     <div id="intro-overlay">
         <div class="db-animation">
             <div class="db-line"></div>
@@ -280,7 +259,7 @@
         <div class="intro-subtext">INICIALIZANDO MOTOR DE ANÁLISE...</div>
     </div>
 
-    <!-- NAVBAR (Estilo iOS/Notion) -->
+    <!-- NAVBAR -->
     <header id="navbar">
         <div class="nav-brand">
             <i data-lucide="database"></i>
@@ -297,7 +276,6 @@
         
         <!-- LADO ESQUERDO: MAPA E IMPORTAÇÃO -->
         <section id="map-section">
-            
             <div id="upload-overlay">
                 <i data-lucide="file-json-2" class="upload-icon"></i>
                 <h3 style="font-weight: 600;">Importar Dados de Exploração</h3>
@@ -307,7 +285,6 @@
                 <input type="file" id="fileInput" accept=".json" style="display: none;">
                 <button class="btn-primary" onclick="document.getElementById('fileInput').click()">Selecionar Arquivo</button>
             </div>
-
             <div id="map"></div>
         </section>
 
@@ -341,9 +318,32 @@
                     </div>
                 </div>
 
+                <!-- NOVA ÁREA: LEGENDA DO MAPA -->
+                <div class="legend-area hidden" id="legendArea">
+                    <div class="legend-title">Legenda do Mapa</div>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <span class="legend-icon line-icon"></span>
+                            <span>Percurso Percorrido</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-icon dot-blue"></span>
+                            <span>Magnetismo Baixo (&lt; 200)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-icon dot-yellow"></span>
+                            <span>Magnetismo Médio (200 - 800)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-icon dot-red"></span>
+                            <span>Magnetismo Alto (&gt; 800)</span>
+                        </div>
+                    </div>
+                </div>
+
                 <hr class="divider">
 
-                <!-- Área de texto livre (salva no localStorage) -->
+                <!-- Área de texto livre -->
                 <div class="editor-area" contenteditable="true" id="docNotes" placeholder="Adicione suas notas de campo, hipóteses e conclusões aqui... Pressione Enter para novos parágrafos."></div>
 
             </div>
@@ -351,19 +351,15 @@
     </main>
 
 <script>
-    // Inicializa ícones
     lucide.createIcons();
 
-    // === GESTÃO DA ANIMAÇÃO DE CARREGAMENTO ===
     window.addEventListener('load', () => {
         setTimeout(() => {
             document.body.classList.add('app-loaded');
-            // Força o mapa a recalcular seu tamanho após a animação sumir
             setTimeout(() => { if(map) map.invalidateSize(); }, 800);
         }, 2000); 
     });
 
-    // === MODO ESCURO ===
     const btnTheme = document.getElementById('btnTheme');
     const savedTheme = localStorage.getItem('bingoWorkspaceTheme');
     
@@ -380,15 +376,12 @@
         lucide.createIcons();
     });
 
-    // === GESTÃO DE NOTAS (LOCAL STORAGE) ===
     const docTitle = document.getElementById('docTitle');
     const docNotes = document.getElementById('docNotes');
 
-    // Carrega notas salvas
     docTitle.innerText = localStorage.getItem('workspaceTitle') || 'Relatório de Exploração';
     docNotes.innerHTML = localStorage.getItem('workspaceNotes') || '';
 
-    // Salva ao digitar (Debounce simples)
     let timeout;
     const saveContent = () => {
         clearTimeout(timeout);
@@ -401,14 +394,11 @@
     docTitle.addEventListener('input', saveContent);
     docNotes.addEventListener('input', saveContent);
 
-    // Impressão e PDF
     document.getElementById('btnPrint').addEventListener('click', () => {
-        // O Leaflet precisa saber que a tela mudou para o mapa renderizar certo no PDF
         if(map) map.invalidateSize();
         window.print();
     });
 
-    // === CONFIGURAÇÃO DO MAPA LEAFLET ===
     const map = L.map('map', { zoomControl: false }).setView([-23.5505, -46.6333], 15);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap &copy; CARTO',
@@ -418,38 +408,29 @@
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // Camadas de dados vazias
     let layerBlue = L.heatLayer([], { radius: 15, blur: 10, gradient: {0.2: 'cyan', 0.65: '#007aff', 1.0: 'navy'} }).addTo(map);
     let layerYellow = L.heatLayer([], { radius: 15, blur: 10, gradient: {0.2: '#ffcc00', 0.65: '#ff9500', 1.0: '#ff3b30'} }).addTo(map);
     let layerRed = L.heatLayer([], { radius: 15, blur: 10, gradient: {0.2: '#ff3b30', 0.65: '#c51162', 1.0: '#8b0000'} }).addTo(map);
     let userPathLine = L.polyline([], { color: '#af52de', weight: 4, opacity: 0.8, lineJoin: 'round', dashArray: '5, 10' }).addTo(map);
 
 
-    // === LÓGICA DE IMPORTAÇÃO DE ARQUIVO JSON ===
     const uploadOverlay = document.getElementById('upload-overlay');
     const fileInput = document.getElementById('fileInput');
 
-    // Drag and Drop Events
-    uploadOverlay.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadOverlay.classList.add('dragover');
-    });
+    uploadOverlay.addEventListener('dragover', (e) => { e.preventDefault(); uploadOverlay.classList.add('dragover'); });
     uploadOverlay.addEventListener('dragleave', () => uploadOverlay.classList.remove('dragover'));
     uploadOverlay.addEventListener('drop', (e) => {
         e.preventDefault();
         uploadOverlay.classList.remove('dragover');
         if (e.dataTransfer.files.length) processFile(e.dataTransfer.files[0]);
     });
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length) processFile(e.target.files[0]);
-    });
+    fileInput.addEventListener('change', (e) => { if (e.target.files.length) processFile(e.target.files[0]); });
 
     function processFile(file) {
         if (!file.name.endsWith('.json')) {
             alert('Por favor, envie apenas o arquivo .json exportado pelo BingoApp.');
             return;
         }
-
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
@@ -464,13 +445,12 @@
     }
 
     function renderizarDados(data) {
-        // 1. Esconder Overlay
         uploadOverlay.style.opacity = '0';
         setTimeout(() => uploadOverlay.classList.add('hidden'), 300);
 
-        // 2. Preencher Interface (Notion Workspace)
         document.getElementById('metaDataArea').classList.remove('hidden');
         document.getElementById('statsArea').classList.remove('hidden');
+        document.getElementById('legendArea').classList.remove('hidden'); // Exibe a legenda!
         document.getElementById('statusBadge').classList.add('visible');
 
         const dataFormatada = new Date(data.dataCriacao).toLocaleString('pt-BR');
@@ -483,46 +463,32 @@
             document.getElementById('valReads').innerText = data.resumo.leituras || "--";
         }
 
-        // Sugerir título baseado na data
         if(docTitle.innerText === 'Relatório de Exploração' || docTitle.innerText === '') {
             docTitle.innerText = `Análise - ${new Date(data.dataCriacao).toLocaleDateString('pt-BR')}`;
         }
 
-        // 3. Processar Mapa
         let boundsPoints = [];
 
-        // Rastro (Linha pontilhada)
         if (data.rastreamento && data.rastreamento.length > 0) {
-            const pathLatLngs = data.rastreamento.map(p => {
-                boundsPoints.push([p.lat, p.lng]);
-                return [p.lat, p.lng];
-            });
+            const pathLatLngs = data.rastreamento.map(p => { boundsPoints.push([p.lat, p.lng]); return [p.lat, p.lng]; });
             userPathLine.setLatLngs(pathLatLngs);
         }
 
-        // Heatmap (Zonas)
         if (data.pontosLidos && data.pontosLidos.length > 0) {
             let ptsAzul = [], ptsAmarelo = [], ptsVermelho = [];
-            
             data.pontosLidos.forEach(p => {
                 boundsPoints.push([p.lat, p.lng]);
-                // Reconstruir lógicas das zonas baseado no valor original
                 if (p.valor < 200) ptsAzul.push([p.lat, p.lng, 0.6]);
                 else if (p.valor <= 800) ptsAmarelo.push([p.lat, p.lng, 0.6]);
                 else ptsVermelho.push([p.lat, p.lng, 0.6]);
             });
-
             layerBlue.setLatLngs(ptsAzul);
             layerYellow.setLatLngs(ptsAmarelo);
             layerRed.setLatLngs(ptsVermelho);
         }
 
-        // Centralizar Câmera
-        if (boundsPoints.length > 0) {
-            map.fitBounds(L.latLngBounds(boundsPoints), { padding: [30, 30] });
-        }
+        if (boundsPoints.length > 0) { map.fitBounds(L.latLngBounds(boundsPoints), { padding: [30, 30] }); }
     }
-
 </script>
 </body>
 </html>
