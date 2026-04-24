@@ -1,3 +1,4 @@
+html
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -238,6 +239,23 @@
     <div id="settingsSheet" class="glass-panel ui-element bottom-sheet">
         <div class="sheet-handle" id="closeSettingsSheet"></div>
         <div style="overflow-y: auto; padding-bottom: 20px;" class="materials-container"> 
+            
+            <h3 style="font-size: 14px; opacity: 0.6; text-transform: uppercase; margin-bottom: 5px;">Sistema Bluetooth</h3>
+            <!-- NOVO CONTROLE: Sensibilidade do Sensor -->
+            <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 5px;">
+                <div class="setting-info" style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span class="setting-title">Sensibilidade do Sensor</span>
+                        <div class="setting-desc">Ajusta o ganho do ESP32 via BLE</div>
+                    </div>
+                    <span class="setting-title" id="sensitivityValDisplay" style="font-weight: 800; color: var(--accent);">1.0</span>
+                </div>
+                <input type="range" id="sensitivitySlider" min="0.1" max="2.0" step="0.1" value="1.0">
+            </div>
+
+            <hr class="layer-divider">
+            <h3 style="font-size: 14px; opacity: 0.6; text-transform: uppercase; margin-bottom: 5px;">Aparência e Teste</h3>
+            
             <div class="setting-row"><div class="setting-info"><span class="setting-title">Modo Escuro</span><span class="setting-desc">Inverte as cores</span></div><input type="checkbox" class="toggle-switch" id="darkModeToggle"></div>
             <div class="setting-row"><div class="setting-info"><span class="setting-title">Mostrar Painel Principal</span><span class="setting-desc">Sinal e controlos</span></div><input type="checkbox" class="toggle-switch" id="mainPanelToggle" checked></div>
             <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 5px;"><div class="setting-info" style="width: 100%;"><span class="setting-title">Transparência da Interface</span></div><input type="range" id="opacitySlider" min="0.3" max="1" step="0.05" value="0.75"></div>
@@ -303,12 +321,19 @@
     function startSessionTimerIfNeed() { if (!sessionStartTime) { sessionStartTime = new Date(); timerInterval = setInterval(updateTimer, 1000); } }
 
     const darkModeToggle = document.getElementById('darkModeToggle'); const mainPanelToggle = document.getElementById('mainPanelToggle'); const opacitySlider = document.getElementById('opacitySlider'); const testPanelToggle = document.getElementById('testPanelToggle'); const manualTestArea = document.getElementById('manualTestArea'); const bottomPanel = document.getElementById('bottom-panel');
+    
+    // Controles de Sensibilidade
+    const sensitivitySlider = document.getElementById('sensitivitySlider');
+    const sensitivityValDisplay = document.getElementById('sensitivityValDisplay');
 
     function loadSettings() {
         const savedDarkMode = localStorage.getItem('bingoDarkMode'); if (savedDarkMode !== null) { darkModeToggle.checked = savedDarkMode === 'true'; } else { darkModeToggle.checked = window.matchMedia("(prefers-color-scheme: dark)").matches; }
         const savedMainPanel = localStorage.getItem('bingoMainPanel'); if (savedMainPanel !== null) { const showPanel = savedMainPanel === 'true'; mainPanelToggle.checked = showPanel; bottomPanel.classList.toggle('hidden-panel', !showPanel); } else { mainPanelToggle.checked = true; }
         const savedOpacity = localStorage.getItem('bingoOpacity'); if (savedOpacity !== null) { document.documentElement.style.setProperty('--panel-alpha', savedOpacity); opacitySlider.value = savedOpacity; }
         const savedTestPanel = localStorage.getItem('bingoTestPanel'); if (savedTestPanel === 'true') { testPanelToggle.checked = true; manualTestArea.style.display = 'flex'; }
+        
+        const savedSens = localStorage.getItem('bingoSensitivity');
+        if(savedSens !== null) { sensitivitySlider.value = savedSens; sensitivityValDisplay.innerText = savedSens; }
     }
     loadSettings();
 
@@ -316,6 +341,29 @@
     mainPanelToggle.addEventListener('change', (e) => { bottomPanel.classList.toggle('hidden-panel', !e.target.checked); localStorage.setItem('bingoMainPanel', e.target.checked); });
     opacitySlider.addEventListener('input', (e) => { document.documentElement.style.setProperty('--panel-alpha', e.target.value); localStorage.setItem('bingoOpacity', e.target.value); });
     testPanelToggle.addEventListener('change', (e) => { manualTestArea.style.display = e.target.checked ? 'flex' : 'none'; localStorage.setItem('bingoTestPanel', e.target.checked); });
+
+    // Atualiza apenas o texto visual enquanto arrasta
+    sensitivitySlider.addEventListener('input', (e) => {
+        sensitivityValDisplay.innerText = e.target.value;
+    });
+
+    // Envia o dado para o ESP32 e guarda na memória apenas quando o usuário larga a barra
+    sensitivitySlider.addEventListener('change', async (e) => {
+        const valorSensibilidade = e.target.value;
+        localStorage.setItem('bingoSensitivity', valorSensibilidade);
+        
+        if (characteristic) {
+            try {
+                const encoder = new TextEncoder();
+                // Envia no formato "SENS:1.5"
+                const payload = "SENS:" + valorSensibilidade;
+                await characteristic.writeValue(encoder.encode(payload));
+                console.log("Sensibilidade enviada via BLE:", payload);
+            } catch (error) {
+                console.error("Falha ao enviar sensibilidade:", error);
+            }
+        }
+    });
 
     const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-23.5505, -46.6333], 15);
     const layerObjetos = { mapasBase: { 'ruas': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { crossOrigin: true }), 'escuro': L.layerGroup() }, overlays: { 'calor': L.layerGroup(), 'rastro': L.layerGroup(), 'posicao': L.layerGroup() } };
@@ -440,13 +488,7 @@
         
         try { 
             atualizarStatus("Buscando Dispositivo...", "normal"); 
-            
-            // CORREÇÃO: Usamos filtros diretamente pelo SERVICE_UUID em vez do nome.
-            // O telemóvel esconde o nome do dispositivo quando o UUID é muito longo (devido à falta de espaço no scan response).
-            bluetoothDevice = await navigator.bluetooth.requestDevice({ 
-                filters: [{ services: [SERVICE_UUID] }]
-            }); 
-            
+            bluetoothDevice = await navigator.bluetooth.requestDevice({ filters: [{ services: [SERVICE_UUID] }] }); 
             bluetoothDevice.addEventListener('gattserverdisconnected', handleDisconnect); 
             const server = await bluetoothDevice.gatt.connect(); 
             const service = await server.getPrimaryService(SERVICE_UUID); 
