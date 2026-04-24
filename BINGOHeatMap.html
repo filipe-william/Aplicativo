@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -240,7 +241,17 @@
         <div style="overflow-y: auto; padding-bottom: 20px;" class="materials-container"> 
             
             <h3 style="font-size: 14px; opacity: 0.6; text-transform: uppercase; margin-bottom: 5px;">Sistema Bluetooth</h3>
-            <!-- NOVO CONTROLE: Sensibilidade do Sensor -->
+            
+            <!-- NOVO CONTROLE: Toggle do Buzzer -->
+            <div class="setting-row">
+                <div class="setting-info">
+                    <span class="setting-title">Alarme Sonoro (Buzzer)</span>
+                    <span class="setting-desc">Ligar/Desligar som do ESP32</span>
+                </div>
+                <input type="checkbox" class="toggle-switch" id="buzzerToggle" checked>
+            </div>
+
+            <!-- CONTROLE: Sensibilidade do Sensor -->
             <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 5px;">
                 <div class="setting-info" style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
                     <div>
@@ -321,9 +332,10 @@
 
     const darkModeToggle = document.getElementById('darkModeToggle'); const mainPanelToggle = document.getElementById('mainPanelToggle'); const opacitySlider = document.getElementById('opacitySlider'); const testPanelToggle = document.getElementById('testPanelToggle'); const manualTestArea = document.getElementById('manualTestArea'); const bottomPanel = document.getElementById('bottom-panel');
     
-    // Controles de Sensibilidade
+    // Controles de Sensibilidade e Buzzer
     const sensitivitySlider = document.getElementById('sensitivitySlider');
     const sensitivityValDisplay = document.getElementById('sensitivityValDisplay');
+    const buzzerToggle = document.getElementById('buzzerToggle');
 
     function loadSettings() {
         const savedDarkMode = localStorage.getItem('bingoDarkMode'); if (savedDarkMode !== null) { darkModeToggle.checked = savedDarkMode === 'true'; } else { darkModeToggle.checked = window.matchMedia("(prefers-color-scheme: dark)").matches; }
@@ -333,6 +345,9 @@
         
         const savedSens = localStorage.getItem('bingoSensitivity');
         if(savedSens !== null) { sensitivitySlider.value = savedSens; sensitivityValDisplay.innerText = savedSens; }
+
+        const savedBuzzer = localStorage.getItem('bingoBuzzer');
+        if(savedBuzzer !== null) { buzzerToggle.checked = savedBuzzer === 'true'; } else { buzzerToggle.checked = true; }
     }
     loadSettings();
 
@@ -341,12 +356,30 @@
     opacitySlider.addEventListener('input', (e) => { document.documentElement.style.setProperty('--panel-alpha', e.target.value); localStorage.setItem('bingoOpacity', e.target.value); });
     testPanelToggle.addEventListener('change', (e) => { manualTestArea.style.display = e.target.checked ? 'flex' : 'none'; localStorage.setItem('bingoTestPanel', e.target.checked); });
 
+    // Enviar Comando do Buzzer
+    buzzerToggle.addEventListener('change', async (e) => {
+        const isEnabled = e.target.checked;
+        localStorage.setItem('bingoBuzzer', isEnabled);
+        
+        if (characteristic) {
+            try {
+                const encoder = new TextEncoder();
+                // Envia no formato "BUZZ:1" ou "BUZZ:0"
+                const payload = isEnabled ? "BUZZ:1" : "BUZZ:0";
+                await characteristic.writeValue(encoder.encode(payload));
+                console.log("Comando Buzzer enviado via BLE:", payload);
+            } catch (error) {
+                console.error("Falha ao enviar comando de buzzer:", error);
+            }
+        }
+    });
+
     // Atualiza apenas o texto visual enquanto arrasta
     sensitivitySlider.addEventListener('input', (e) => {
         sensitivityValDisplay.innerText = e.target.value;
     });
 
-    // Envia o dado para o ESP32 e guarda na memória apenas quando o usuário larga a barra
+    // Envia o dado de sensibilidade para o ESP32 quando o usuário larga a barra
     sensitivitySlider.addEventListener('change', async (e) => {
         const valorSensibilidade = e.target.value;
         localStorage.setItem('bingoSensitivity', valorSensibilidade);
@@ -503,6 +536,16 @@
             btn.innerHTML = '<i data-lucide="bluetooth-connected"></i> Conectado'; 
             btn.style.background = 'var(--success)'; 
             lucide.createIcons(); 
+            
+            // Sincroniza o estado inicial do site para o ESP32 assim que liga
+            setTimeout(async () => {
+                const enc = new TextEncoder();
+                const sens = localStorage.getItem('bingoSensitivity') || "1.0";
+                const buzz = (localStorage.getItem('bingoBuzzer') !== 'false') ? "1" : "0";
+                await characteristic.writeValue(enc.encode("SENS:" + sens));
+                await characteristic.writeValue(enc.encode("BUZZ:" + buzz));
+            }, 1000);
+
         } catch (error) { 
             console.error(error);
             atualizarStatus("Falha na Conexão", "disconnected"); 
