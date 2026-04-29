@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -197,20 +197,20 @@
         </div>
     </div>
 
-    <!-- MAPA & EXPORT SELO -->
+    <!-- MAP & EXPORT WATERMARK -->
     <div id="capture-wrapper">
         <div id="map"></div>
         <div id="export-watermark">
-            <div class="wm-title">Relatório BingoApp</div>
+            <div class="wm-title">BingoApp Report</div>
             <hr class="wm-divider">
-            <div class="wm-stat"><span>⏱️ Tempo:</span> <span id="wm-time">00:00</span></div>
+            <div class="wm-stat"><span>⏱️ Time:</span> <span id="wm-time">00:00</span></div>
             <div class="wm-stat"><span>👣 Dist:</span> <span id="wm-dist">0 m</span></div>
-            <div class="wm-stat"><span>📡 Leituras:</span> <span id="wm-reads">0</span></div>
+            <div class="wm-stat"><span>📡 Reads:</span> <span id="wm-reads">0</span></div>
             <hr class="wm-divider" style="margin-top: 12px;">
             <div class="wm-legend">
-                <div class="wm-legend-item"><span class="dot" style="background:#007aff;"></span> 0-200 (Baixo)</div>
-                <div class="wm-legend-item"><span class="dot" style="background:#ffcc00;"></span> 200-800 (Médio)</div>
-                <div class="wm-legend-item"><span class="dot" style="background:#ff3b30;"></span> >800 (Alto)</div>
+                <div class="wm-legend-item"><span class="dot" style="background:#007aff;"></span> 0-200 (Low)</div>
+                <div class="wm-legend-item"><span class="dot" style="background:#ffcc00;"></span> 200-800 (Med)</div>
+                <div class="wm-legend-item"><span class="dot" style="background:#ff3b30;"></span> >800 (High)</div>
             </div>
         </div>
     </div>
@@ -218,45 +218,43 @@
     <div id="backdrop"></div>
     <div id="export-overlay">
         <i data-lucide="package" style="width: 48px; height: 48px; margin-bottom: 10px;" class="lucide-pulse"></i>
-        <h3 style="margin: 0; font-family: sans-serif;">Gerando Arquivo ZIP...</h3>
+        <h3 style="margin: 0; font-family: sans-serif;">Generating ZIP File...</h3>
     </div>
 
     <!-- UI -->
-    <div id="header-status" class="glass-panel ui-element motion-ui"><div id="status-indicator" class="status-dot"></div><span id="status-text">Procurando ESP32...</span></div>
+    <div id="header-status" class="glass-panel ui-element motion-ui"><div id="status-indicator" class="status-dot"></div><span id="status-text">Searching for ESP32...</span></div>
 
     <div class="float-btn-group ui-element motion-ui">
-        <button id="btnSettings" class="float-btn" title="Configurações"><i data-lucide="settings"></i></button>
-        <button id="btnExport" class="float-btn" title="Exportar Relatório Visual"><i data-lucide="camera"></i></button>
+        <button id="btnSettings" class="float-btn" title="Settings"><i data-lucide="settings"></i></button>
+        <button id="btnExport" class="float-btn" title="Export Visual Report"><i data-lucide="camera"></i></button>
     </div>
 
-    <button id="btnLayersToggle" class="float-btn ui-element motion-ui" title="Camadas"><i data-lucide="layers"></i></button>
+    <button id="btnLayersToggle" class="float-btn ui-element motion-ui" title="Layers"><i data-lucide="layers"></i></button>
 
     <div id="customLayersPanel" class="glass-panel ui-element">
-        <div class="layer-section"><div class="layer-section-title">Mapa Base</div><div class="layer-row"><div class="layer-item"><button class="layer-round-btn base-map-btn active" data-mapa="ruas"><i data-lucide="map"></i></button><span>Ruas</span></div><div class="layer-item"><button class="layer-round-btn base-map-btn" data-mapa="escuro"><i data-lucide="moon"></i></button><span>Vazio</span></div></div></div><hr class="layer-divider">
-        <div class="layer-section"><div class="layer-section-title">Dados & Sobreposições</div><div class="layer-row"><div class="layer-item"><button class="layer-round-btn overlay-btn active" data-overlay="calor"><i data-lucide="flame"></i></button><span>Calor</span></div><div class="layer-item"><button class="layer-round-btn overlay-btn active" data-overlay="rastro"><i data-lucide="route"></i></button><span>Rastro</span></div><div class="layer-item"><button class="layer-round-btn overlay-btn active" data-overlay="posicao"><i data-lucide="navigation"></i></button><span>Posição</span></div></div></div>
+        <div class="layer-section"><div class="layer-section-title">Base Map</div><div class="layer-row"><div class="layer-item"><button class="layer-round-btn base-map-btn active" data-mapa="ruas"><i data-lucide="map"></i></button><span>Streets</span></div><div class="layer-item"><button class="layer-round-btn base-map-btn" data-mapa="escuro"><i data-lucide="moon"></i></button><span>Dark</span></div></div></div><hr class="layer-divider">
+        <div class="layer-section"><div class="layer-section-title">Data & Overlays</div><div class="layer-row"><div class="layer-item"><button class="layer-round-btn overlay-btn active" data-overlay="calor"><i data-lucide="flame"></i></button><span>Heat</span></div><div class="layer-item"><button class="layer-round-btn overlay-btn active" data-overlay="rastro"><i data-lucide="route"></i></button><span>Path</span></div><div class="layer-item"><button class="layer-round-btn overlay-btn active" data-overlay="posicao"><i data-lucide="navigation"></i></button><span>Pos</span></div></div></div>
     </div>
 
     <div id="settingsSheet" class="glass-panel ui-element bottom-sheet">
         <div class="sheet-handle" id="closeSettingsSheet"></div>
         <div style="overflow-y: auto; padding-bottom: 20px;" class="materials-container"> 
             
-            <h3 style="font-size: 14px; opacity: 0.6; text-transform: uppercase; margin-bottom: 5px;">Sistema Bluetooth</h3>
+            <h3 style="font-size: 14px; opacity: 0.6; text-transform: uppercase; margin-bottom: 5px;">Bluetooth System</h3>
             
-            <!-- NOVO CONTROLE: Toggle do Buzzer -->
             <div class="setting-row">
                 <div class="setting-info">
-                    <span class="setting-title">Alarme Sonoro (Buzzer)</span>
-                    <span class="setting-desc">Ligar/Desligar som do ESP32</span>
+                    <span class="setting-title">Sound Alarm (Buzzer)</span>
+                    <span class="setting-desc">Toggle ESP32 sound</span>
                 </div>
                 <input type="checkbox" class="toggle-switch" id="buzzerToggle" checked>
             </div>
 
-            <!-- CONTROLE: Sensibilidade do Sensor -->
             <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 5px;">
                 <div class="setting-info" style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <span class="setting-title">Sensibilidade do Sensor</span>
-                        <div class="setting-desc">Ajusta o ganho do ESP32 via BLE</div>
+                        <span class="setting-title">Sensor Sensitivity</span>
+                        <div class="setting-desc">Adjust ESP32 gain via BLE</div>
                     </div>
                     <span class="setting-title" id="sensitivityValDisplay" style="font-weight: 800; color: var(--accent);">1.0</span>
                 </div>
@@ -264,51 +262,51 @@
             </div>
 
             <hr class="layer-divider">
-            <h3 style="font-size: 14px; opacity: 0.6; text-transform: uppercase; margin-bottom: 5px;">Aparência e Teste</h3>
+            <h3 style="font-size: 14px; opacity: 0.6; text-transform: uppercase; margin-bottom: 5px;">Appearance & Test</h3>
             
-            <div class="setting-row"><div class="setting-info"><span class="setting-title">Modo Escuro</span><span class="setting-desc">Inverte as cores</span></div><input type="checkbox" class="toggle-switch" id="darkModeToggle"></div>
-            <div class="setting-row"><div class="setting-info"><span class="setting-title">Mostrar Painel Principal</span><span class="setting-desc">Sinal e controlos</span></div><input type="checkbox" class="toggle-switch" id="mainPanelToggle" checked></div>
-            <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 5px;"><div class="setting-info" style="width: 100%;"><span class="setting-title">Transparência da Interface</span></div><input type="range" id="opacitySlider" min="0.3" max="1" step="0.05" value="0.75"></div>
-            <div class="setting-row"><div class="setting-info"><span class="setting-title">Painel de Testes</span><span class="setting-desc">Simular hardware</span></div><input type="checkbox" class="toggle-switch" id="testPanelToggle"></div>
-            <div id="manualTestArea" style="display: none; margin-top: 15px; gap: 10px;"><input type="number" id="manualInput" placeholder="Valor (ex: 300)" style="flex:1; padding:12px; border-radius:12px; border:none; background:rgba(0,0,0,0.05); font-size:16px;"><button id="btnAddManual" style="padding:12px 20px; border-radius:12px; border:none; background:var(--success); color:white; font-weight:bold;">Testar</button></div>
+            <div class="setting-row"><div class="setting-info"><span class="setting-title">Dark Mode</span><span class="setting-desc">Invert colors</span></div><input type="checkbox" class="toggle-switch" id="darkModeToggle"></div>
+            <div class="setting-row"><div class="setting-info"><span class="setting-title">Show Main Panel</span><span class="setting-desc">Signal and controls</span></div><input type="checkbox" class="toggle-switch" id="mainPanelToggle" checked></div>
+            <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 5px;"><div class="setting-info" style="width: 100%;"><span class="setting-title">Interface Opacity</span></div><input type="range" id="opacitySlider" min="0.3" max="1" step="0.05" value="0.75"></div>
+            <div class="setting-row"><div class="setting-info"><span class="setting-title">Test Panel</span><span class="setting-desc">Simulate hardware</span></div><input type="checkbox" class="toggle-switch" id="testPanelToggle"></div>
+            <div id="manualTestArea" style="display: none; margin-top: 15px; gap: 10px;"><input type="number" id="manualInput" placeholder="Value (e.g. 300)" style="flex:1; padding:12px; border-radius:12px; border:none; background:rgba(0,0,0,0.05); font-size:16px;"><button id="btnAddManual" style="padding:12px 20px; border-radius:12px; border:none; background:var(--success); color:white; font-weight:bold;">Test</button></div>
             
             <hr class="layer-divider">
-            <h3 style="font-size: 14px; opacity: 0.6; text-transform: uppercase; margin-bottom: 5px;">Ações da Exploração</h3>
-            <button id="btnSaveExploration" class="btn-large-action btn-primary"><i data-lucide="save"></i> Salvar Dados Completos (.ZIP)</button>
-            <button id="btnShutdown" class="btn-large-action btn-danger"><i data-lucide="power"></i> Desligar Bingo</button>
+            <h3 style="font-size: 14px; opacity: 0.6; text-transform: uppercase; margin-bottom: 5px;">Exploration Actions</h3>
+            <button id="btnSaveExploration" class="btn-large-action btn-primary"><i data-lucide="save"></i> Save Full Data (.ZIP)</button>
+            <button id="btnShutdown" class="btn-large-action btn-danger"><i data-lucide="power"></i> Power Off Bingo</button>
         </div>
     </div>
 
     <div id="materialsSheet" class="glass-panel ui-element bottom-sheet">
         <div class="sheet-handle" id="closeMaterialsSheet"></div>
-        <h3 style="margin: 0 0 15px 0; text-align: center; font-size: 18px;">Guia de Magnetismo</h3>
+        <h3 style="margin: 0 0 15px 0; text-align: center; font-size: 18px;">Magnetism Guide</h3>
         <div class="materials-container">
-            <div class="material-row"><span class="material-name"><span class="dot" style="background:#007aff;"></span>Ossos</span><span class="material-value">90</span></div>
-            <div class="material-row"><span class="material-name"><span class="dot" style="background:#007aff;"></span>Cerâmica</span><span class="material-value">150</span></div>
-            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Obsidiana</span><span class="material-value">210</span></div>
-            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Sílex</span><span class="material-value">280</span></div>
-            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Pedra (Ferramentas)</span><span class="material-value">320</span></div>
-            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Granito</span><span class="material-value">360</span></div>
-            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Ouro</span><span class="material-value">520</span></div>
-            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Cobre</span><span class="material-value">780</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#007aff;"></span>Bones</span><span class="material-value">90</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#007aff;"></span>Ceramics</span><span class="material-value">150</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Obsidian</span><span class="material-value">210</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Flint</span><span class="material-value">280</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Stone (Tools)</span><span class="material-value">320</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Granite</span><span class="material-value">360</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Gold</span><span class="material-value">520</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ffcc00;"></span>Copper</span><span class="material-value">780</span></div>
             <div class="material-row"><span class="material-name"><span class="dot" style="background:#ff3b30;"></span>Bronze</span><span class="material-value">950</span></div>
-            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ff3b30;"></span>Ferro</span><span class="material-value">1700</span></div>
+            <div class="material-row"><span class="material-name"><span class="dot" style="background:#ff3b30;"></span>Iron</span><span class="material-value">1700</span></div>
         </div>
     </div>
 
     <div id="bottom-panel" class="glass-panel ui-element motion-ui">
-        <button id="btnStatsToggle" title="Ver Estatísticas"><i data-lucide="bar-chart-2" style="width: 18px; height: 18px;"></i></button>
-        <button id="btnTableToggle" title="Tabela de Materiais"><i data-lucide="book-open" style="width: 18px; height: 18px;"></i></button>
+        <button id="btnStatsToggle" title="View Statistics"><i data-lucide="bar-chart-2" style="width: 18px; height: 18px;"></i></button>
+        <button id="btnTableToggle" title="Materials Table"><i data-lucide="book-open" style="width: 18px; height: 18px;"></i></button>
 
-        <div class="value-display"><span class="value-label">Intensidade do Sinal</span><span id="valor-sensor">--</span></div>
+        <div class="value-display"><span class="value-label">Signal Intensity</span><span id="valor-sensor">--</span></div>
 
         <div id="stats-panel">
-            <div class="stat-row"><span class="stat-label"><i data-lucide="timer" style="width: 16px; height: 16px;"></i> Tempo:</span><span class="stat-value" id="stat-time">00:00</span></div>
-            <div class="stat-row"><span class="stat-label"><i data-lucide="footprints" style="width: 16px; height: 16px;"></i> Distância:</span><span class="stat-value" id="stat-dist">0 m</span></div>
-            <div class="stat-row"><span class="stat-label"><i data-lucide="activity" style="width: 16px; height: 16px;"></i> Leituras ESP32:</span><span class="stat-value" id="stat-reads">0</span></div>
+            <div class="stat-row"><span class="stat-label"><i data-lucide="timer" style="width: 16px; height: 16px;"></i> Time:</span><span class="stat-value" id="stat-time">00:00</span></div>
+            <div class="stat-row"><span class="stat-label"><i data-lucide="footprints" style="width: 16px; height: 16px;"></i> Distance:</span><span class="stat-value" id="stat-dist">0 m</span></div>
+            <div class="stat-row"><span class="stat-label"><i data-lucide="activity" style="width: 16px; height: 16px;"></i> ESP32 Reads:</span><span class="stat-value" id="stat-reads">0</span></div>
         </div>
 
-        <div class="primary-actions"><button id="btnConnect" class="btn-action"><i data-lucide="bluetooth"></i> Conectar</button><button id="btnCenter" class="btn-action" title="Centralizar Mapa"><i data-lucide="navigation"></i></button></div>
+        <div class="primary-actions"><button id="btnConnect" class="btn-action"><i data-lucide="bluetooth"></i> Connect</button><button id="btnCenter" class="btn-action" title="Center Map"><i data-lucide="navigation"></i></button></div>
         <div class="legenda"><div class="legenda-item"><span class="dot" style="background:#007aff;"></span> 0-200</div><div class="legenda-item"><span class="dot" style="background:#ffcc00;"></span> 200-800</div><div class="legenda-item"><span class="dot" style="background:#ff3b30;"></span> >800</div></div>
     </div>
 
@@ -332,7 +330,7 @@
 
     const darkModeToggle = document.getElementById('darkModeToggle'); const mainPanelToggle = document.getElementById('mainPanelToggle'); const opacitySlider = document.getElementById('opacitySlider'); const testPanelToggle = document.getElementById('testPanelToggle'); const manualTestArea = document.getElementById('manualTestArea'); const bottomPanel = document.getElementById('bottom-panel');
     
-    // Controles de Sensibilidade e Buzzer
+    // Sens e Buzz Controls
     const sensitivitySlider = document.getElementById('sensitivitySlider');
     const sensitivityValDisplay = document.getElementById('sensitivityValDisplay');
     const buzzerToggle = document.getElementById('buzzerToggle');
@@ -356,7 +354,7 @@
     opacitySlider.addEventListener('input', (e) => { document.documentElement.style.setProperty('--panel-alpha', e.target.value); localStorage.setItem('bingoOpacity', e.target.value); });
     testPanelToggle.addEventListener('change', (e) => { manualTestArea.style.display = e.target.checked ? 'flex' : 'none'; localStorage.setItem('bingoTestPanel', e.target.checked); });
 
-    // Enviar Comando do Buzzer
+    // Send Buzzer command
     buzzerToggle.addEventListener('change', async (e) => {
         const isEnabled = e.target.checked;
         localStorage.setItem('bingoBuzzer', isEnabled);
@@ -364,22 +362,15 @@
         if (characteristic) {
             try {
                 const encoder = new TextEncoder();
-                // Envia no formato "BUZZ:1" ou "BUZZ:0"
                 const payload = isEnabled ? "BUZZ:1" : "BUZZ:0";
                 await characteristic.writeValue(encoder.encode(payload));
-                console.log("Comando Buzzer enviado via BLE:", payload);
-            } catch (error) {
-                console.error("Falha ao enviar comando de buzzer:", error);
-            }
+            } catch (error) { console.error("Failed to send buzzer command:", error); }
         }
     });
 
-    // Atualiza apenas o texto visual enquanto arrasta
-    sensitivitySlider.addEventListener('input', (e) => {
-        sensitivityValDisplay.innerText = e.target.value;
-    });
+    sensitivitySlider.addEventListener('input', (e) => { sensitivityValDisplay.innerText = e.target.value; });
 
-    // Envia o dado de sensibilidade para o ESP32 quando o usuário larga a barra
+    // Send Sens command
     sensitivitySlider.addEventListener('change', async (e) => {
         const valorSensibilidade = e.target.value;
         localStorage.setItem('bingoSensitivity', valorSensibilidade);
@@ -387,13 +378,9 @@
         if (characteristic) {
             try {
                 const encoder = new TextEncoder();
-                // Envia no formato "SENS:1.5"
                 const payload = "SENS:" + valorSensibilidade;
                 await characteristic.writeValue(encoder.encode(payload));
-                console.log("Sensibilidade enviada via BLE:", payload);
-            } catch (error) {
-                console.error("Falha ao enviar sensibilidade:", error);
-            }
+            } catch (error) { console.error("Failed to send sensitivity:", error); }
         }
     });
 
@@ -427,12 +414,12 @@
         
         pontosRegistrados.push(novoPontoLatLng); totalReadsESP32++; statReadsEl.innerText = totalReadsESP32;
         let intensidade = 0.6; let zona = "";
-        if (valor < 200) { ptsBlue.push([currentLat, currentLng, intensidade]); layerBlue.setLatLngs(ptsBlue); zona = "Baixo (Azul)"; } else if (valor <= 800) { ptsYellow.push([currentLat, currentLng, intensidade]); layerYellow.setLatLngs(ptsYellow); zona = "Médio (Amarelo)"; } else { ptsRed.push([currentLat, currentLng, intensidade]); layerRed.setLatLngs(ptsRed); zona = "Alto (Vermelho)"; }
+        if (valor < 200) { ptsBlue.push([currentLat, currentLng, intensidade]); layerBlue.setLatLngs(ptsBlue); zona = "Low (Blue)"; } else if (valor <= 800) { ptsYellow.push([currentLat, currentLng, intensidade]); layerYellow.setLatLngs(ptsYellow); zona = "Med (Yellow)"; } else { ptsRed.push([currentLat, currentLng, intensidade]); layerRed.setLatLngs(ptsRed); zona = "High (Red)"; }
         sessionLog.push({ time: new Date().toLocaleTimeString(), lat: currentLat.toFixed(6), lng: currentLng.toFixed(6), value: valor, zone: zona });
     }
     document.getElementById('btnAddManual').addEventListener('click', () => { processarValor(document.getElementById('manualInput').value); });
 
-    // === EXPORTAÇÃO ZIP ===
+    // === ZIP EXPORT ===
     async function executarExportacao(incluirTudo = false) {
         let bounds = null;
         if (userPathCoords.length > 0) bounds = L.polyline(userPathCoords).getBounds();
@@ -456,29 +443,29 @@
                 if (incluirTudo) {
                     const zip = new JSZip();
                     const imgData = dataUrl.split(',')[1];
-                    zip.file(`Mapa-BingoApp-${timestamp}.png`, imgData, {base64: true});
+                    zip.file(`Map-BingoApp-${timestamp}.png`, imgData, {base64: true});
 
-                    let texto = "=================================================\n        RELATÓRIO DE EXPLORAÇÃO - BINGOAPP       \n=================================================\n\n";
-                    texto += `Data: ${new Date().toLocaleDateString()}\nTempo: ${statTimeEl.innerText}\nDistância: ${statDistEl.innerText}\nLeituras: ${statReadsEl.innerText}\n\n`;
-                    texto += "-------------------------------------------------\nHORA      | LATITUDE    | LONGITUDE   | VALOR | ZONA\n-------------------------------------------------\n";
-                    if (sessionLog.length === 0) { texto += "Nenhum dado registado.\n"; } else { sessionLog.forEach(log => { texto += `${log.time}  | ${log.lat}  | ${log.lng}  | ${log.value.toString().padStart(5, ' ')} | ${log.zone}\n`; }); }
+                    let texto = "=================================================\n          BINGOAPP EXPLORATION REPORT            \n=================================================\n\n";
+                    texto += `Date: ${new Date().toLocaleDateString()}\nTime: ${statTimeEl.innerText}\nDistance: ${statDistEl.innerText}\nReads: ${statReadsEl.innerText}\n\n`;
+                    texto += "-------------------------------------------------\nTIME      | LATITUDE    | LONGITUDE   | VALUE | ZONE\n-------------------------------------------------\n";
+                    if (sessionLog.length === 0) { texto += "No data recorded.\n"; } else { sessionLog.forEach(log => { texto += `${log.time}  | ${log.lat}  | ${log.lng}  | ${log.value.toString().padStart(5, ' ')} | ${log.zone}\n`; }); }
                     texto += "=================================================\n";
-                    zip.file(`Dados-BingoApp-${timestamp}.txt`, texto);
+                    zip.file(`Data-BingoApp-${timestamp}.txt`, texto);
 
-                    const jsonExport = { versaoApp: "BingoApp Premium", dataCriacao: new Date().toISOString(), resumo: { tempo: statTimeEl.innerText, distancia: statDistEl.innerText, leituras: statReadsEl.innerText }, rastreamento: userPathCoords.map(p => ({ lat: p.lat, lng: p.lng })), pontosLidos: sessionLog.map(p => ({ hora: p.time, lat: parseFloat(p.lat), lng: parseFloat(p.lng), valor: p.value, zona: p.zone })) };
+                    const jsonExport = { appVersion: "BingoApp Premium", creationDate: new Date().toISOString(), summary: { time: statTimeEl.innerText, distance: statDistEl.innerText, reads: statReadsEl.innerText }, tracking: userPathCoords.map(p => ({ lat: p.lat, lng: p.lng })), dataPoints: sessionLog.map(p => ({ time: p.time, lat: parseFloat(p.lat), lng: parseFloat(p.lng), value: p.value, zone: p.zone })) };
                     zip.file(`Backup-BingoApp-${timestamp}.json`, JSON.stringify(jsonExport, null, 2));
 
                     const zipContent = await zip.generateAsync({type:"blob"});
                     const linkZip = document.createElement('a');
                     linkZip.href = URL.createObjectURL(zipContent);
-                    linkZip.download = `Exportacao-Completa-BingoApp-${timestamp}.zip`;
+                    linkZip.download = `Full-Export-BingoApp-${timestamp}.zip`;
                     linkZip.click();
                 } else {
                     const linkImg = document.createElement('a');
-                    linkImg.download = `Mapa-BingoApp-${timestamp}.png`; linkImg.href = dataUrl; linkImg.click();
+                    linkImg.download = `Map-BingoApp-${timestamp}.png`; linkImg.href = dataUrl; linkImg.click();
                 }
             } catch (error) {
-                console.error("Erro na exportação: ", error); alert("Falha ao exportar. Tente alterar o mapa base (Ruas/Vazio).");
+                console.error("Export Error: ", error); alert("Failed to export. Try changing the Base Map (Streets/Dark).");
             } finally {
                 uiElements.forEach(el => el.style.opacity = ''); watermark.style.visibility = 'hidden'; watermark.style.opacity = '0';
                 if (bounds) map.setView(centerBefore, zoomBefore, { animate: false }); overlay.style.display = 'none';
@@ -515,11 +502,11 @@
     async function connectBLE() {
         if (isConnecting) return; isConnecting = true; 
         const btn = document.getElementById('btnConnect'); 
-        btn.innerHTML = '<i data-lucide="loader-2" class="lucide-spin"></i> Conectando...'; 
+        btn.innerHTML = '<i data-lucide="loader-2" class="lucide-spin"></i> Connecting...'; 
         lucide.createIcons();
         
         try { 
-            atualizarStatus("Buscando Dispositivo...", "normal"); 
+            atualizarStatus("Searching Device...", "normal"); 
             bluetoothDevice = await navigator.bluetooth.requestDevice({ filters: [{ services: [SERVICE_UUID] }] }); 
             bluetoothDevice.addEventListener('gattserverdisconnected', handleDisconnect); 
             const server = await bluetoothDevice.gatt.connect(); 
@@ -532,12 +519,11 @@
                 processarValor(value.trim()); 
             }); 
             
-            atualizarStatus("Conectado", "connected"); 
-            btn.innerHTML = '<i data-lucide="bluetooth-connected"></i> Conectado'; 
+            atualizarStatus("Connected", "connected"); 
+            btn.innerHTML = '<i data-lucide="bluetooth-connected"></i> Connected'; 
             btn.style.background = 'var(--success)'; 
             lucide.createIcons(); 
             
-            // Sincroniza o estado inicial do site para o ESP32 assim que liga
             setTimeout(async () => {
                 const enc = new TextEncoder();
                 const sens = localStorage.getItem('bingoSensitivity') || "1.0";
@@ -548,8 +534,8 @@
 
         } catch (error) { 
             console.error(error);
-            atualizarStatus("Falha na Conexão", "disconnected"); 
-            btn.innerHTML = '<i data-lucide="bluetooth"></i> Tentar Novamente'; 
+            atualizarStatus("Connection Failed", "disconnected"); 
+            btn.innerHTML = '<i data-lucide="bluetooth"></i> Try Again'; 
             btn.style.background = 'var(--accent)'; 
             lucide.createIcons(); 
         } finally { 
@@ -557,8 +543,8 @@
         }
     }
     
-    function handleDisconnect() { atualizarStatus("Desconectado", "disconnected"); const btn = document.getElementById('btnConnect'); btn.innerHTML = '<i data-lucide="bluetooth"></i> Reconectar'; btn.style.background = 'var(--danger)'; lucide.createIcons(); setTimeout(() => { if (bluetoothDevice) connectBLE(); }, 2000); }
-    document.getElementById('btnShutdown').addEventListener('click', async () => { if (!characteristic) { alert("Conecte ao ESP32 primeiro!"); return; } if (confirm("Deseja desligar o Bingo? (Será necessário apertar Reset no aparelho)")) { const encoder = new TextEncoder(); await characteristic.writeValue(encoder.encode("SHUTDOWN")); atualizarStatus("Desligando...", "disconnected"); closeAllPanels(); } });
+    function handleDisconnect() { atualizarStatus("Disconnected", "disconnected"); const btn = document.getElementById('btnConnect'); btn.innerHTML = '<i data-lucide="bluetooth"></i> Reconnect'; btn.style.background = 'var(--danger)'; lucide.createIcons(); setTimeout(() => { if (bluetoothDevice) connectBLE(); }, 2000); }
+    document.getElementById('btnShutdown').addEventListener('click', async () => { if (!characteristic) { alert("Connect to ESP32 first!"); return; } if (confirm("Do you want to turn off the Bingo? (Hardware Reset will be required)")) { const encoder = new TextEncoder(); await characteristic.writeValue(encoder.encode("SHUTDOWN")); atualizarStatus("Powering off...", "disconnected"); closeAllPanels(); } });
     document.getElementById('btnConnect').addEventListener('click', connectBLE);
 </script>
 
