@@ -148,8 +148,6 @@
         .btn-large-action:active { transform: scale(0.98); }
         .btn-danger { background: rgba(255, 59, 48, 0.1); color: var(--danger); }
         .btn-primary { background: var(--accent); color: white; }
-        .btn-warning { background: rgba(255, 204, 0, 0.15); color: #b28c00; }
-        body.dark-mode .btn-warning { color: #ffcc00; }
 
         .materials-container { overflow-y: auto; margin-top: 10px; padding-bottom: 20px; }
         .material-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 15px; align-items: center; }
@@ -188,6 +186,7 @@
         if (savedDarkMode === 'true' || (savedDarkMode === null && window.matchMedia("(prefers-color-scheme: dark)").matches)) { document.body.classList.add('dark-mode'); }
     </script>
 
+    <!-- INTRO -->
     <div id="intro-overlay">
         <div class="tech-wave-container"><div class="wave-blob"></div><div class="wave-blob"></div><div class="wave-blob"></div></div>
         <div class="intro-content">
@@ -198,6 +197,7 @@
         </div>
     </div>
 
+    <!-- MAP & EXPORT WATERMARK -->
     <div id="capture-wrapper">
         <div id="map"></div>
         <div id="export-watermark">
@@ -221,6 +221,7 @@
         <h3 style="margin: 0; font-family: sans-serif;">Generating ZIP File...</h3>
     </div>
 
+    <!-- UI -->
     <div id="header-status" class="glass-panel ui-element motion-ui"><div id="status-indicator" class="status-dot"></div><span id="status-text">Searching for ESP32...</span></div>
 
     <div class="float-btn-group ui-element motion-ui">
@@ -249,14 +250,6 @@
                 <input type="checkbox" class="toggle-switch" id="buzzerToggle" checked>
             </div>
 
-            <div class="setting-row">
-                <div class="setting-info">
-                    <span class="setting-title" style="color: #ff9500; font-weight: 700;">Test Mode</span>
-                    <span class="setting-desc">Mutes buzzer and disables red LED</span>
-                </div>
-                <input type="checkbox" class="toggle-switch" id="testModeToggle">
-            </div>
-
             <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 5px;">
                 <div class="setting-info" style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
                     <div>
@@ -269,12 +262,12 @@
             </div>
 
             <hr class="layer-divider">
-            <h3 style="font-size: 14px; opacity: 0.6; text-transform: uppercase; margin-bottom: 5px;">Appearance & Software</h3>
+            <h3 style="font-size: 14px; opacity: 0.6; text-transform: uppercase; margin-bottom: 5px;">Appearance & Test</h3>
             
             <div class="setting-row"><div class="setting-info"><span class="setting-title">Dark Mode</span><span class="setting-desc">Invert colors</span></div><input type="checkbox" class="toggle-switch" id="darkModeToggle"></div>
             <div class="setting-row"><div class="setting-info"><span class="setting-title">Show Main Panel</span><span class="setting-desc">Signal and controls</span></div><input type="checkbox" class="toggle-switch" id="mainPanelToggle" checked></div>
             <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 5px;"><div class="setting-info" style="width: 100%;"><span class="setting-title">Interface Opacity</span></div><input type="range" id="opacitySlider" min="0.3" max="1" step="0.05" value="0.75"></div>
-            <div class="setting-row"><div class="setting-info"><span class="setting-title">Software Emulator</span><span class="setting-desc">Input fake data</span></div><input type="checkbox" class="toggle-switch" id="testPanelToggle"></div>
+            <div class="setting-row"><div class="setting-info"><span class="setting-title">Test Panel</span><span class="setting-desc">Simulate hardware</span></div><input type="checkbox" class="toggle-switch" id="testPanelToggle"></div>
             <div id="manualTestArea" style="display: none; margin-top: 15px; gap: 10px;"><input type="number" id="manualInput" placeholder="Value (e.g. 300)" style="flex:1; padding:12px; border-radius:12px; border:none; background:rgba(0,0,0,0.05); font-size:16px;"><button id="btnAddManual" style="padding:12px 20px; border-radius:12px; border:none; background:var(--success); color:white; font-weight:bold;">Test</button></div>
             
             <hr class="layer-divider">
@@ -305,10 +298,7 @@
         <button id="btnStatsToggle" title="View Statistics"><i data-lucide="bar-chart-2" style="width: 18px; height: 18px;"></i></button>
         <button id="btnTableToggle" title="Materials Table"><i data-lucide="book-open" style="width: 18px; height: 18px;"></i></button>
 
-        <div class="value-display">
-            <span class="value-label" id="signalLabel">Signal Intensity</span>
-            <span id="valor-sensor">--</span>
-        </div>
+        <div class="value-display"><span class="value-label">Signal Intensity</span><span id="valor-sensor">--</span></div>
 
         <div id="stats-panel">
             <div class="stat-row"><span class="stat-label"><i data-lucide="timer" style="width: 16px; height: 16px;"></i> Time:</span><span class="stat-value" id="stat-time">00:00</span></div>
@@ -328,7 +318,6 @@
     let totalDistanceMeters = 0; let totalReadsESP32 = 0; let sessionStartTime = null; let timerInterval = null; let sessionLog = []; 
     const statTimeEl = document.getElementById('stat-time'); const statDistEl = document.getElementById('stat-dist'); const statReadsEl = document.getElementById('stat-reads');
     const btnStatsToggle = document.getElementById('btnStatsToggle'); const statsPanel = document.getElementById('stats-panel');
-    const signalLabel = document.getElementById('signalLabel');
 
     btnStatsToggle.addEventListener('click', () => { btnStatsToggle.classList.toggle('active'); statsPanel.classList.toggle('active'); });
 
@@ -341,11 +330,10 @@
 
     const darkModeToggle = document.getElementById('darkModeToggle'); const mainPanelToggle = document.getElementById('mainPanelToggle'); const opacitySlider = document.getElementById('opacitySlider'); const testPanelToggle = document.getElementById('testPanelToggle'); const manualTestArea = document.getElementById('manualTestArea'); const bottomPanel = document.getElementById('bottom-panel');
     
-    // BLE Controls
+    // Sens e Buzz Controls
     const sensitivitySlider = document.getElementById('sensitivitySlider');
     const sensitivityValDisplay = document.getElementById('sensitivityValDisplay');
     const buzzerToggle = document.getElementById('buzzerToggle');
-    const testModeToggle = document.getElementById('testModeToggle');
 
     function loadSettings() {
         const savedDarkMode = localStorage.getItem('bingoDarkMode'); if (savedDarkMode !== null) { darkModeToggle.checked = savedDarkMode === 'true'; } else { darkModeToggle.checked = window.matchMedia("(prefers-color-scheme: dark)").matches; }
@@ -358,23 +346,7 @@
 
         const savedBuzzer = localStorage.getItem('bingoBuzzer');
         if(savedBuzzer !== null) { buzzerToggle.checked = savedBuzzer === 'true'; } else { buzzerToggle.checked = true; }
-
-        const savedTestMode = localStorage.getItem('bingoTestMode');
-        if(savedTestMode !== null) { testModeToggle.checked = savedTestMode === 'true'; updateTestModeUI(testModeToggle.checked); }
     }
-
-    function updateTestModeUI(isActive) {
-        if (isActive) {
-            signalLabel.innerText = "Signal Intensity (TEST MODE)";
-            signalLabel.style.color = "#ff9500";
-            signalLabel.style.fontWeight = "bold";
-        } else {
-            signalLabel.innerText = "Signal Intensity";
-            signalLabel.style.color = "";
-            signalLabel.style.fontWeight = "";
-        }
-    }
-
     loadSettings();
 
     darkModeToggle.addEventListener('change', (e) => { document.body.classList.toggle('dark-mode', e.target.checked); localStorage.setItem('bingoDarkMode', e.target.checked); });
@@ -386,21 +358,13 @@
     buzzerToggle.addEventListener('change', async (e) => {
         const isEnabled = e.target.checked;
         localStorage.setItem('bingoBuzzer', isEnabled);
+        
         if (characteristic) {
-            try { await characteristic.writeValue(new TextEncoder().encode(isEnabled ? "BUZZ:1" : "BUZZ:0")); } 
-            catch (error) { console.error(error); }
-        }
-    });
-
-    // Send Test Mode command
-    testModeToggle.addEventListener('change', async (e) => {
-        const isEnabled = e.target.checked;
-        localStorage.setItem('bingoTestMode', isEnabled);
-        updateTestModeUI(isEnabled);
-
-        if (characteristic) {
-            try { await characteristic.writeValue(new TextEncoder().encode(isEnabled ? "TEST:1" : "TEST:0")); } 
-            catch (error) { console.error(error); }
+            try {
+                const encoder = new TextEncoder();
+                const payload = isEnabled ? "BUZZ:1" : "BUZZ:0";
+                await characteristic.writeValue(encoder.encode(payload));
+            } catch (error) { console.error("Failed to send buzzer command:", error); }
         }
     });
 
@@ -410,9 +374,13 @@
     sensitivitySlider.addEventListener('change', async (e) => {
         const valorSensibilidade = e.target.value;
         localStorage.setItem('bingoSensitivity', valorSensibilidade);
+        
         if (characteristic) {
-            try { await characteristic.writeValue(new TextEncoder().encode("SENS:" + valorSensibilidade)); } 
-            catch (error) { console.error(error); }
+            try {
+                const encoder = new TextEncoder();
+                const payload = "SENS:" + valorSensibilidade;
+                await characteristic.writeValue(encoder.encode(payload));
+            } catch (error) { console.error("Failed to send sensitivity:", error); }
         }
     });
 
@@ -560,10 +528,8 @@
                 const enc = new TextEncoder();
                 const sens = localStorage.getItem('bingoSensitivity') || "1.0";
                 const buzz = (localStorage.getItem('bingoBuzzer') !== 'false') ? "1" : "0";
-                const tMode = (localStorage.getItem('bingoTestMode') === 'true') ? "1" : "0";
                 await characteristic.writeValue(enc.encode("SENS:" + sens));
                 await characteristic.writeValue(enc.encode("BUZZ:" + buzz));
-                await characteristic.writeValue(enc.encode("TEST:" + tMode));
             }, 1000);
 
         } catch (error) { 
